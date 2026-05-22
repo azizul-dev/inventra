@@ -4,6 +4,13 @@ import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 
+import {
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+
+import { AppSidebar } from "@/components/dashboard/AppSidebar";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -26,7 +33,18 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <TooltipProvider>
-          {children}
+          <SidebarProvider>
+            <AppSidebar />
+
+            <main className="w-full">
+              {/* <div className="p-4">
+                <SidebarTrigger />
+              </div> */}
+
+              {children}
+            </main>
+          </SidebarProvider>
+
           <Toaster richColors />
         </TooltipProvider>
       </body>

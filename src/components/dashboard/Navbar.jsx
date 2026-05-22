@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 
 import { Menu } from "lucide-react";
 import { Great_Vibes } from "next/font/google";
+import { SidebarTrigger } from "../ui/sidebar";
 
 const greatVibes = Great_Vibes({
   subsets: ["latin"],
@@ -24,9 +25,11 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b bg-white">
       <div className="flex h-16 items-center justify-between px-4 lg:px-8">
         {/* LEFT */}
+
         <div className="flex items-center gap-3">
+            <SidebarTrigger  />
           {/* MOBILE MENU */}
-          <div className="lg:hidden">
+          {/* <div className="lg:hidden">
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon" className="rounded-xl">
@@ -54,11 +57,11 @@ export default function Navbar() {
                 </div>
               </SheetContent>
             </Sheet>
-          </div>
+          </div> */}
 
           {/* LOGO */}
           <Link href="/" className="flex items-center gap-3">
-            <Image src="/images/logo.png" alt="logo" width={100} height={100} />
+            <Image src="/images/logo.png" alt="logo" width={50} height={50}  className=" rounded-full"/>
 
             <h1 className={`${greatVibes.className} text-4xl text-gray-900`}>
               Inventra
