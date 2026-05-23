@@ -308,14 +308,14 @@ const AddInventoryPage = () => {
 
             
               <div className="flex gap-4 pt-4">
-                <Button type="submit" className="h-12 rounded-xl px-8">
-                  Save Product
+                <Button type="submit" className="h-12 rounded-xl px-8 cursor-pointer">
+                  Submit
                 </Button>
 
                 <Button
                   type="reset"
                   variant="outline"
-                  className="h-12 rounded-xl px-8"
+                  className="h-12 rounded-xl px-8 cursor-pointer"
                 >
                   Reset
                 </Button>
