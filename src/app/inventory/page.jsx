@@ -9,6 +9,7 @@ import {
   Plus,
   Package,
 } from "lucide-react";
+import EditInventoryModal from "@/components/dashboard/EditInventoryModal";
 
 const InventoryPage = async () => {
   const res = await fetch("http://localhost:8000/inventory", {
@@ -19,7 +20,6 @@ const InventoryPage = async () => {
 
   return (
     <div className="p-4 md:p-6">
-      {/* HEADER */}
       <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
@@ -41,7 +41,6 @@ const InventoryPage = async () => {
         </Link>
       </div>
 
-      {/* GRID */}
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {inventory.map((item) => {
           const stock = Number(item.stock);
@@ -55,11 +54,9 @@ const InventoryPage = async () => {
               key={item._id}
               className="group overflow-hidden rounded-3xl border bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(168,85,247,0.25),0_0_45px_rgba(59,130,246,0.25)]"
             >
-              {/* TOP COLOR BAR */}
-             <div className="h-1 w-full bg-[linear-gradient(90deg,#8b5cf6,#06b6d4,#f59e0b,#ec4899,#3b82f6,#8b5cf6)] bg-[length:300%_100%] animate-gradient" />
+              <div className="h-1 w-full bg-[linear-gradient(90deg,#8b5cf6,#06b6d4,#f59e0b,#ec4899,#3b82f6,#8b5cf6)] bg-[length:300%_100%] animate-gradient" />
 
               <div className="space-y-5 p-5">
-                {/* TOP */}
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
@@ -71,41 +68,42 @@ const InventoryPage = async () => {
                     </h2>
 
                     <div className="mt-3 flex items-center gap-2 text-gray-500">
+                      <p className="mt-2 text-xs text-gray-400">
+                        যোগ হয়েছে:{" "}
+                        {new Date(item.createdAt).toLocaleDateString("bn-BD")}
+                      </p>
+
+                      <p className="text-xs text-gray-400">
+                        আপডেট:{" "}
+                        {new Date(item.updatedAt).toLocaleDateString("bn-BD")}
+                      </p>
                       <Package className="h-4 w-4" />
 
-                      <span className="text-sm">
-                        ইউনিট: {item.unit}
-                      </span>
+                      <span className="text-sm">ইউনিট: {item.unit}</span>
                     </div>
                   </div>
 
-                  {/* ACTION BUTTONS */}
                   <div className="flex items-center gap-2">
-                    <button className="flex h-10 w-10 items-center justify-center rounded-xl border bg-white text-gray-600 transition hover:bg-blue-50 hover:text-blue-600">
-                      <Pencil className="h-4 w-4" />
-                    </button>
+                    <EditInventoryModal item={item} />
 
-                    <button className="flex h-10 w-10 items-center justify-center rounded-xl border bg-white text-gray-600 transition hover:bg-red-50 hover:text-red-600">
+                    <button className=" cursor-pointer flex h-10 w-10 items-center justify-center rounded-xl border bg-white text-gray-600 transition hover:bg-red-50 hover:text-red-600">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
 
-                {/* STOCK */}
                 <div>
                   <div className="mb-3 flex items-end justify-between">
                     <div>
-                      <p className="text-sm text-gray-500">
-                        বর্তমান স্টক
-                      </p>
+                      <p className="text-sm text-gray-500">বর্তমান স্টক</p>
 
                       <h3
                         className={`mt-1 text-2xl font-bold ${
                           stock === 0
                             ? "text-red-700"
                             : lowStock
-                            ? "text-amber-600"
-                            : "text-green-700"
+                              ? "text-amber-600"
+                              : "text-green-700"
                         }`}
                       >
                         {item.stock} {item.unit}
@@ -117,66 +115,50 @@ const InventoryPage = async () => {
                         stock === 0
                           ? "text-red-600"
                           : lowStock
-                          ? "text-amber-500"
-                          : "text-green-700"
+                            ? "text-amber-500"
+                            : "text-green-700"
                       }`}
                     />
                   </div>
 
-                  {/* PROGRESS */}
                   <div className="h-2 overflow-hidden rounded-full bg-gray-100">
                     <div
                       className={`h-full rounded-full ${
                         stock === 0
                           ? "bg-red-600"
                           : lowStock
-                          ? "bg-amber-500"
-                          : "bg-green-700"
+                            ? "bg-amber-500"
+                            : "bg-green-700"
                       }`}
                       style={{
-                        width:
-                          stock === 0
-                            ? "5%"
-                            : lowStock
-                            ? "35%"
-                            : "80%",
+                        width: stock === 0 ? "5%" : lowStock ? "35%" : "80%",
                       }}
                     />
                   </div>
                 </div>
 
-                {/* PRICE */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-2xl bg-gray-50 p-4">
-                    <p className="text-sm text-gray-500">
-                      কেনার দাম
-                    </p>
+                    <p className="text-sm text-gray-500">কেনার দাম</p>
 
                     <div className="mt-2 flex items-center gap-2">
                       <Wallet className="h-4 w-4 text-gray-500" />
 
-                      <h4 className="text-lg font-bold">
-                        ৳ {item.buyPrice}
-                      </h4>
+                      <h4 className="text-lg font-bold">৳ {item.buyPrice}</h4>
                     </div>
                   </div>
 
                   <div className="rounded-2xl bg-gray-50 p-4">
-                    <p className="text-sm text-gray-500">
-                      বিক্রয় দাম
-                    </p>
+                    <p className="text-sm text-gray-500">বিক্রয় দাম</p>
 
                     <div className="mt-2 flex items-center gap-2">
                       <Wallet className="h-4 w-4 text-gray-500" />
 
-                      <h4 className="text-lg font-bold">
-                        ৳ {item.sellPrice}
-                      </h4>
+                      <h4 className="text-lg font-bold">৳ {item.sellPrice}</h4>
                     </div>
                   </div>
                 </div>
 
-                {/* FOOTER */}
                 <div className="flex items-center justify-between gap-3 pt-1">
                   {stock === 0 ? (
                     <div className="flex items-center gap-2 rounded-full bg-red-100 px-4 py-2 text-sm font-semibold text-red-700">
