@@ -1,15 +1,15 @@
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import DashboardTables from "@/components/dashboard/DashboardTables";
 import Navbar from "@/components/dashboard/Navbar";
+import StatsCard from "@/components/dashboard/StatsCard";
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50">
       <Navbar />
-
-      <div className="p-6">
-        <h1 className="text-4xl font-bold text-gray-900">
-          Dashboard
-        </h1>
-      </div>
+      <DashboardHeader/>
+      <StatsCard/>
+      <DashboardTables/>
     </main>
   );
 }
