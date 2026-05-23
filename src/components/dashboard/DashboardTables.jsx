@@ -80,7 +80,7 @@ const DashboardTables = () => {
         <div className="flex items-center justify-between border-b px-6 py-5">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">
-              Recent Sales
+              Recent Sales/ আজকের বিক্রি
             </h2>
 
             <p className="mt-1 text-sm text-gray-500">
