@@ -10,6 +10,7 @@ import {
   Package,
 } from "lucide-react";
 import EditInventoryModal from "@/components/dashboard/EditInventoryModal";
+import DeleteModal from "@/components/dashboard/DeleteModal";
 
 const InventoryPage = async () => {
   const res = await fetch("http://localhost:8000/inventory", {
@@ -86,9 +87,7 @@ const InventoryPage = async () => {
                   <div className="flex items-center gap-2">
                     <EditInventoryModal item={item} />
 
-                    <button className=" cursor-pointer flex h-10 w-10 items-center justify-center rounded-xl border bg-white text-gray-600 transition hover:bg-red-50 hover:text-red-600">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    <DeleteModal item={item}/>
                   </div>
                 </div>
 

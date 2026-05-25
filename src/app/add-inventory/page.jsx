@@ -24,8 +24,11 @@ import {
   FileText,
   CalendarDays,
 } from "lucide-react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const AddInventoryPage = () => {
+  const router = useRouter();
   const form = useForm({
     defaultValues: {
       productName: "",
@@ -63,7 +66,12 @@ const AddInventoryPage = () => {
 
     const data = await res.json();
 
-    console.log(data);
+     if (data.insertedId) {
+      toast.success("Inventory added successfully");
+
+      router.refresh();
+    }
+   
   };
 
   return (

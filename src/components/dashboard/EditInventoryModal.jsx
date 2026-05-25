@@ -15,8 +15,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 import { Pencil } from "lucide-react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const EditInventoryModal = ({ item }) => {
+  const router = useRouter();
   const onSubmit = async (e) => {
     e.preventDefault();
 
@@ -26,7 +29,6 @@ const EditInventoryModal = ({ item }) => {
       ...Object.fromEntries(formData.entries()),
       updatedAt: new Date(),
     };
-    console.log(inventoryUpdate);
 
     const res = await fetch(
       `http://localhost:8000/inventoryUpdate/${item._id}`,
@@ -41,9 +43,10 @@ const EditInventoryModal = ({ item }) => {
 
     const data = await res.json();
 
-    console.log(data);
-
-    window.location.reload();
+    if (data.modifiedCount > 0) {
+      toast.success("Product updated successfully");
+      router.refresh();
+    }
   };
 
   return (
@@ -63,7 +66,6 @@ const EditInventoryModal = ({ item }) => {
           </DialogHeader>
 
           <form onSubmit={onSubmit} className="space-y-5">
-           
             <div>
               <label className="mb-2 block text-sm font-medium">
                 Product Name
@@ -75,7 +77,7 @@ const EditInventoryModal = ({ item }) => {
                 className="h-12 rounded-xl"
               />
             </div>
- 
+
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label className="mb-2 block text-sm font-medium">
@@ -100,7 +102,6 @@ const EditInventoryModal = ({ item }) => {
               </div>
             </div>
 
-             
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label className="mb-2 block text-sm font-medium">
@@ -172,7 +173,6 @@ const EditInventoryModal = ({ item }) => {
               />
             </div>
 
-             
             <div>
               <label className="mb-2 block text-sm font-medium">
                 Description
@@ -185,7 +185,6 @@ const EditInventoryModal = ({ item }) => {
               />
             </div>
 
-            
             <div className="flex justify-end gap-3 pt-3">
               <Button type="submit" className="rounded-xl">
                 Update Product
