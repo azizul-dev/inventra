@@ -4,15 +4,23 @@ import {
   Boxes,
   Wallet,
   TriangleAlert,
-  Pencil,
-  Trash2,
   Plus,
   Package,
 } from "lucide-react";
+
 import EditInventoryModal from "@/components/dashboard/EditInventoryModal";
 import DeleteModal from "@/components/dashboard/DeleteModal";
 
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+
 const InventoryPage = async () => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  const isAdmin = session?.user?.role === "admin";
+
   const res = await fetch("http://localhost:8000/inventory", {
     cache: "no-store",
   });
@@ -32,14 +40,16 @@ const InventoryPage = async () => {
           </p>
         </div>
 
-        <Link
-          href="/add-inventory"
-          className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-black px-6 text-sm font-semibold text-white transition hover:scale-[1.02]"
-        >
-          <Plus className="h-5 w-5" />
+        {isAdmin && (
+          <Link
+            href="/add-inventory"
+            className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-black px-6 text-sm font-semibold text-white transition hover:scale-[1.02]"
+          >
+            <Plus className="h-5 w-5" />
 
-          <span>নতুন স্টক যোগ করুন</span>
-        </Link>
+            <span>নতুন স্টক যোগ করুন</span>
+          </Link>
+        )}
       </div>
 
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -78,17 +88,19 @@ const InventoryPage = async () => {
                         আপডেট:{" "}
                         {new Date(item.updatedAt).toLocaleDateString("bn-BD")}
                       </p>
+
                       <Package className="h-4 w-4" />
 
                       <span className="text-sm">ইউনিট: {item.unit}</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <EditInventoryModal item={item} />
-
-                    <DeleteModal item={item}/>
-                  </div>
+                  {isAdmin && (
+                    <div className="flex items-center gap-2">
+                      <EditInventoryModal item={item} />
+                      <DeleteModal item={item} />
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -162,13 +174,11 @@ const InventoryPage = async () => {
                   {stock === 0 ? (
                     <div className="flex items-center gap-2 rounded-full bg-red-100 px-4 py-2 text-sm font-semibold text-red-700">
                       <TriangleAlert className="h-4 w-4" />
-
                       <span>স্টক শেষ</span>
                     </div>
                   ) : lowStock ? (
                     <div className="flex items-center gap-2 rounded-full bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-700">
                       <TriangleAlert className="h-4 w-4" />
-
                       <span>কম স্টক</span>
                     </div>
                   ) : (
@@ -177,14 +187,15 @@ const InventoryPage = async () => {
                     </div>
                   )}
 
-                  <Link
-                    href="/add-inventory"
-                    className="flex items-center gap-2 rounded-2xl border px-5 py-3 text-sm font-semibold transition hover:bg-black hover:text-white"
-                  >
-                    <Plus className="h-4 w-4" />
-
-                    <span>স্টক যোগ</span>
-                  </Link>
+                  {isAdmin && (
+                    <Link
+                      href="/add-inventory"
+                      className="flex items-center gap-2 rounded-2xl border px-5 py-3 text-sm font-semibold transition hover:bg-black hover:text-white"
+                    >
+                      <Plus className="h-4 w-4" />
+                      <span>স্টক যোগ</span>
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
