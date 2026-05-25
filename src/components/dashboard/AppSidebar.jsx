@@ -20,7 +20,6 @@ import {
   Users,
   ReceiptText,
   Settings,
-  IoAddCircleOutline,
   PlusCircle,
 } from "lucide-react";
 
