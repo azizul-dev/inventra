@@ -26,7 +26,7 @@ const InventoryPage = async () => {
 
   const isAdmin = session?.user?.role === "admin";
 
-  const res = await fetch("http://localhost:8000/inventory", {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/inventory`, {
      headers: {
       authorization: `Bearer ${token}`
      }

@@ -57,7 +57,7 @@ const AddInventoryPage = () => {
     const {data:tokenData} = await authClient.token()
 
     const res = await fetch(
-      "http://localhost:8000/addInventory",
+      `${process.env.NEXT_PUBLIC_SERVER_URL}/addInventory`,
       {
         method: "POST",
         headers: {
