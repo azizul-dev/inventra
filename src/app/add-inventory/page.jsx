@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 
 const AddInventoryPage = () => {
   const router = useRouter();
@@ -53,12 +54,15 @@ const AddInventoryPage = () => {
       formData.entries()
     );
 
+    const {data:tokenData} = await authClient.token()
+
     const res = await fetch(
       "http://localhost:8000/addInventory",
       {
         method: "POST",
         headers: {
           "content-type": "application/json",
+          authorization: `Bearer ${tokenData?.token}`
         },
         body: JSON.stringify(addInventory),
       }

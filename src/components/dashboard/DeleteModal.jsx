@@ -16,14 +16,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 
 const DeleteModal = ({ item }) => {
     const router = useRouter();
   const handleDelete = async () => {
+    const {data:tokenData} = await authClient.token()
     const res = await fetch(`http://localhost:8000/deleteProduct/${item._id}`, {
       method: "DELETE",
       headers: {
         "content-type": "application/json",
+        authorization: `Bearer ${tokenData?.token}`
       },
     });
     const data = await res.json();

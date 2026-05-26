@@ -19,10 +19,17 @@ const InventoryPage = async () => {
     headers: await headers(),
   });
 
+  const {token} = await auth.api.getToken({
+    headers: await headers()
+  })
+
+
   const isAdmin = session?.user?.role === "admin";
 
   const res = await fetch("http://localhost:8000/inventory", {
-    cache: "no-store",
+     headers: {
+      authorization: `Bearer ${token}`
+     }
   });
 
   const inventory = await res.json();
