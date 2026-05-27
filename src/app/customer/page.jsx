@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import CustomersClient from "../customers/CustomersClient";
+import CustomersClient from "@/components/customers/CustomersClient";
 
 export default async function CustomerMirrorPage() {
   const session = await auth.api.getSession({

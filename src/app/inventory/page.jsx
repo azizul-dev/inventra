@@ -26,13 +26,31 @@ const InventoryPage = async () => {
 
   const isAdmin = session?.user?.role === "admin";
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/inventory`, {
-     headers: {
-      authorization: `Bearer ${token}`
-     }
-  });
+  let inventory = [];
+  let errorMsg = "";
 
-  const inventory = await res.json();
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/inventory`, {
+      headers: {
+        authorization: `Bearer ${token}`
+      },
+      next: { revalidate: 0 }
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        inventory = data;
+      } else {
+        errorMsg = "স্টক ডেটা সঠিক ফরম্যাটে পাওয়া যায়নি।";
+      }
+    } else {
+      errorMsg = `সার্ভার ত্রুটি কোড: ${res.status}`;
+    }
+  } catch (error) {
+    console.error("Failed to fetch inventory:", error);
+    errorMsg = "সার্ভার থেকে স্টক লোড করা যায়নি। অনুগ্রহ করে সার্ভার কানেকশন অথবা NEXT_PUBLIC_SERVER_URL চেক করুন।";
+  }
 
   return (
     <div className="p-4 md:p-6">
@@ -59,9 +77,35 @@ const InventoryPage = async () => {
         )}
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {inventory.map((item) => {
-          const stock = Number(item.stock);
+      {errorMsg ? (
+        <div className="rounded-3xl border border-rose-200 bg-rose-50/50 p-8 text-center max-w-2xl mx-auto shadow-sm">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-rose-100 text-rose-600 mb-4 animate-bounce">
+            <TriangleAlert className="h-7 w-7" />
+          </div>
+          <h2 className="text-xl font-bold text-rose-900 mb-2">স্টক লোড করতে সমস্যা হয়েছে</h2>
+          <p className="text-sm text-rose-700 leading-relaxed">{errorMsg}</p>
+        </div>
+      ) : inventory.length === 0 ? (
+        <div className="rounded-3xl border border-gray-200 bg-white p-12 text-center max-w-2xl mx-auto shadow-sm">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-violet-100 text-violet-600 mb-4">
+            <Boxes className="h-7 w-7" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">স্টক খালি</h2>
+          <p className="text-sm text-gray-500 mb-6">আপনার ইনভেন্টরিতে কোনো পণ্য যোগ করা হয়নি।</p>
+          {isAdmin && (
+            <Link
+              href="/add-inventory"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-black px-6 text-sm font-semibold text-white transition hover:scale-[1.02]"
+            >
+              <Plus className="h-4 w-4" />
+              <span>প্রথম স্টক যোগ করুন</span>
+            </Link>
+          )}
+        </div>
+      ) : (
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {inventory.map((item) => {
+            const stock = Number(item.stock);
 
           const minimumStock = Number(item.minimumStock);
 
@@ -208,7 +252,8 @@ const InventoryPage = async () => {
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

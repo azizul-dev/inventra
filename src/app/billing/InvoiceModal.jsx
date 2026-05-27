@@ -79,22 +79,22 @@ export default function InvoiceModal({ isOpen, onOpenChange, selectedInvoice }) 
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl p-6 overflow-y-auto max-h-[95vh] rounded-3xl">
+      <DialogContent className="max-w-4xl p-4 sm:p-6 overflow-y-auto max-h-[95vh] rounded-3xl">
         <DialogHeader className="no-print">
-          <DialogTitle className="text-xl font-bold flex items-center justify-between">
+          <DialogTitle className="text-xl font-bold flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <span>ইনভয়েস প্রিভিউ</span>
-            <div className="flex gap-2 mr-6">
+            <div className="flex gap-2 sm:mr-6">
               <Button
                 variant="outline"
                 onClick={handlePrint}
-                className="h-9 rounded-xl flex items-center gap-1 text-xs cursor-pointer"
+                className="h-9 rounded-xl flex items-center gap-1 text-xs cursor-pointer flex-1 sm:flex-initial"
               >
                 <Printer className="h-4 w-4" />
                 প্রিন্ট করুন
               </Button>
               <Button
                 onClick={() => handleDownloadPDF(selectedInvoice)}
-                className="h-9 rounded-xl flex items-center gap-1 text-xs bg-cyan-600 hover:bg-cyan-700 text-white cursor-pointer"
+                className="h-9 rounded-xl flex items-center gap-1 text-xs bg-cyan-600 hover:bg-cyan-700 text-white cursor-pointer flex-1 sm:flex-initial"
               >
                 <Download className="h-4 w-4" />
                 পিডিএফ ডাউনলোড
@@ -106,7 +106,11 @@ export default function InvoiceModal({ isOpen, onOpenChange, selectedInvoice }) 
           </DialogDescription>
         </DialogHeader>
 
-        {selectedInvoice && <InvoicePreview isLivePreview={false} invoiceData={selectedInvoice} />}
+        <div className="overflow-x-auto p-1 bg-gray-100/50 rounded-2xl border border-gray-100">
+          <div className="min-w-[700px] md:min-w-0">
+            {selectedInvoice && <InvoicePreview isLivePreview={false} invoiceData={selectedInvoice} />}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
