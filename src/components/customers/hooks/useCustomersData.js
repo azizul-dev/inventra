@@ -46,9 +46,13 @@ export function useCustomersData(initialBillingList = [], token) {
     const toastId = toast.loading(`${customer.name} এর ${customer.bills.length} টি রশিদ স্থায়ীভাবে মুছা হচ্ছে...`);
 
     try {
+      const baseUrl = (!process.env.NEXT_PUBLIC_SERVER_URL || process.env.NEXT_PUBLIC_SERVER_URL.includes("localhost:8000"))
+        ? "/api"
+        : process.env.NEXT_PUBLIC_SERVER_URL;
+
       // Loop over invoices and dispatch DELETE calls
       const deletePromises = customer.bills.map(async (bill) => {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/billing/${bill._id}`, {
+        const res = await fetch(`${baseUrl}/billing/${bill._id}`, {
           method: "DELETE",
           headers: {
             authorization: `Bearer ${token}`,

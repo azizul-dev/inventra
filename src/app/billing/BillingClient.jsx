@@ -115,7 +115,11 @@ export default function BillingClient({
         dueAmount: Number(dueAmount) || 0,
       };
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/addBilling`, {
+      const baseUrl = (!process.env.NEXT_PUBLIC_SERVER_URL || process.env.NEXT_PUBLIC_SERVER_URL.includes("localhost:8000"))
+        ? "/api"
+        : process.env.NEXT_PUBLIC_SERVER_URL;
+
+      const res = await fetch(`${baseUrl}/addBilling`, {
         method: "POST",
         headers: {
           "content-type": "application/json",

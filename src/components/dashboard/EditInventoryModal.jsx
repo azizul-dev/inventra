@@ -32,8 +32,12 @@ const EditInventoryModal = ({ item }) => {
     };
 
     const {data:tokenData} = await authClient.token()
+    const baseUrl = (!process.env.NEXT_PUBLIC_SERVER_URL || process.env.NEXT_PUBLIC_SERVER_URL.includes("localhost:8000"))
+      ? "/api"
+      : process.env.NEXT_PUBLIC_SERVER_URL;
+
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SERVER_URL}/inventoryUpdate/${item._id}`,
+      `${baseUrl}/inventoryUpdate/${item._id}`,
       {
         method: "PATCH",
         headers: {

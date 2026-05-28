@@ -1,4 +1,11 @@
 import { MongoClient } from "mongodb";
+import dns from "node:dns";
+
+try {
+  dns.setServers(["1.1.1.1", "8.8.8.8"]);
+} catch (e) {
+  console.warn("Could not set DNS servers programmatically:", e);
+}
 
 if (!process.env.MONGODB_URI) {
   throw new Error("Invalid/Missing environment variable: MONGODB_URI");

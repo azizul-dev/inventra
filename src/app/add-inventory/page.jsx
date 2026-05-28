@@ -56,8 +56,12 @@ const AddInventoryPage = () => {
 
     const {data:tokenData} = await authClient.token()
 
+    const baseUrl = (!process.env.NEXT_PUBLIC_SERVER_URL || process.env.NEXT_PUBLIC_SERVER_URL.includes("localhost:8000"))
+      ? "/api"
+      : process.env.NEXT_PUBLIC_SERVER_URL;
+
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SERVER_URL}/addInventory`,
+      `${baseUrl}/addInventory`,
       {
         method: "POST",
         headers: {

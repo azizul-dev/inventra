@@ -22,7 +22,11 @@ const DeleteModal = ({ item }) => {
     const router = useRouter();
   const handleDelete = async () => {
     const {data:tokenData} = await authClient.token()
-    const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/deleteProduct/${item._id}`, {
+    const baseUrl = (!process.env.NEXT_PUBLIC_SERVER_URL || process.env.NEXT_PUBLIC_SERVER_URL.includes("localhost:8000"))
+      ? "/api"
+      : process.env.NEXT_PUBLIC_SERVER_URL;
+
+    const res = await fetch(`${baseUrl}/deleteProduct/${item._id}`, {
       method: "DELETE",
       headers: {
         "content-type": "application/json",
