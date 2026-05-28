@@ -33,7 +33,7 @@ export default function CustomerProfileModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl p-4 sm:p-6 overflow-y-auto max-h-[90vh] rounded-3xl no-print">
+      <DialogContent className="max-w-4xl p-4 sm:p-6 overflow-y-auto max-h-[90vh] rounded-3xl dialog-print-container">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-2">
             <History className="h-6 w-6 text-violet-600 animate-spin-slow" />

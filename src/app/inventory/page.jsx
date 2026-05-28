@@ -13,16 +13,12 @@ import DeleteModal from "@/components/dashboard/DeleteModal";
 
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { getDb } from "@/lib/db";
 
 const InventoryPage = async () => {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
-
-  const {token} = await auth.api.getToken({
-    headers: await headers()
-  })
-
 
   const isAdmin = session?.user?.role === "admin";
 
@@ -30,26 +26,19 @@ const InventoryPage = async () => {
   let errorMsg = "";
 
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/inventory`, {
-      headers: {
-        authorization: `Bearer ${token}`
-      },
-      next: { revalidate: 0 }
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        inventory = data;
-      } else {
-        errorMsg = "স্টক ডেটা সঠিক ফরম্যাটে পাওয়া যায়নি।";
-      }
-    } else {
-      errorMsg = `সার্ভার ত্রুটি কোড: ${res.status}`;
-    }
+    const db = await getDb();
+    const inventoryCollection = db.collection("inventor");
+    const data = await inventoryCollection.find().toArray();
+    
+    inventory = data.map(item => ({
+      ...item,
+      _id: item._id.toString(),
+      createdAt: item.createdAt instanceof Date ? item.createdAt.toISOString() : item.createdAt,
+      updatedAt: item.updatedAt instanceof Date ? item.updatedAt.toISOString() : item.updatedAt,
+    }));
   } catch (error) {
-    console.error("Failed to fetch inventory:", error);
-    errorMsg = "সার্ভার থেকে স্টক লোড করা যায়নি। অনুগ্রহ করে সার্ভার কানেকশন অথবা NEXT_PUBLIC_SERVER_URL চেক করুন।";
+    console.error("Failed to query inventory directly:", error);
+    errorMsg = "সার্ভার থেকে স্টক লোড করা যায়নি।";
   }
 
   return (

@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import CustomersClient from "@/components/customers/CustomersClient";
+import { getDb } from "@/lib/db";
 
 export default async function CustomersPage() {
   const session = await auth.api.getSession({
@@ -19,18 +20,17 @@ export default async function CustomersPage() {
   let billingList = [];
 
   try {
-    const billRes = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/billing`, {
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-      next: { revalidate: 0 } // Get fresh bills
-    });
-
-    if (billRes.ok) {
-      billingList = await billRes.json();
-    }
+    const db = await getDb();
+    const billingCollection = db.collection("billing");
+    const billData = await billingCollection.find().sort({ createdAt: -1 }).toArray();
+    billingList = billData.map(bill => ({
+      ...bill,
+      _id: bill._id.toString(),
+      createdAt: bill.createdAt instanceof Date ? bill.createdAt.toISOString() : bill.createdAt,
+      updatedAt: bill.updatedAt instanceof Date ? bill.updatedAt.toISOString() : bill.updatedAt,
+    }));
   } catch (error) {
-    console.error("Failed to fetch billing list for customers page:", error);
+    console.error("Failed to query billing directly on customers page:", error);
   }
 
   return (

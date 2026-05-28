@@ -65,24 +65,55 @@ export default function CustomersClient({
           body * {
             visibility: hidden;
           }
+          /* Keep the Radix Portal, dialog container and print content visible */
+          [data-radix-portal],
+          [data-radix-portal] *,
+          .dialog-print-container,
+          .dialog-print-container * {
+            visibility: visible;
+          }
           #printable-customer-invoice,
           #printable-customer-invoice * {
             visibility: visible;
           }
-          #printable-customer-invoice {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 210mm;
-            min-height: 297mm;
-            padding: 20mm;
-            margin: 0;
-            background: white !important;
-            color: black !important;
+          
+          /* Style the dialog content container for clean paper print */
+          .dialog-print-container {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            max-height: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
             box-shadow: none !important;
+            background: white !important;
           }
+          
+          #printable-customer-invoice {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 10mm !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: white !important;
+          }
+
+          /* Hide modal close buttons, backdrop overlays, and other UI controls */
+          button[aria-label="Close"],
+          [data-radix-el-close],
+          [class*="DialogOverlay"],
+          [class*="backdrop"],
           .no-print {
             display: none !important;
+            opacity: 0 !important;
           }
         }
       `}} />

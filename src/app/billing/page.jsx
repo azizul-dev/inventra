@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import BillingClient from "./BillingClient";
+import { getDb } from "@/lib/db";
 
 export default async function BillingPage({ searchParams }) {
   const session = await auth.api.getSession({
@@ -25,33 +26,27 @@ export default async function BillingPage({ searchParams }) {
   let billingList = [];
 
   try {
-    const invRes = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/inventory`, {
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-      next: { revalidate: 0 } // Disable caching to get fresh stock
-    });
+    const db = await getDb();
+    const inventoryCollection = db.collection("inventor");
+    const billingCollection = db.collection("billing");
 
-    if (invRes.ok) {
-      inventory = await invRes.json();
-    }
+    const invData = await inventoryCollection.find().toArray();
+    inventory = invData.map(item => ({
+      ...item,
+      _id: item._id.toString(),
+      createdAt: item.createdAt instanceof Date ? item.createdAt.toISOString() : item.createdAt,
+      updatedAt: item.updatedAt instanceof Date ? item.updatedAt.toISOString() : item.updatedAt,
+    }));
+
+    const billData = await billingCollection.find().sort({ createdAt: -1 }).toArray();
+    billingList = billData.map(bill => ({
+      ...bill,
+      _id: bill._id.toString(),
+      createdAt: bill.createdAt instanceof Date ? bill.createdAt.toISOString() : bill.createdAt,
+      updatedAt: bill.updatedAt instanceof Date ? bill.updatedAt.toISOString() : bill.updatedAt,
+    }));
   } catch (error) {
-    console.error("Failed to fetch inventory for billing:", error);
-  }
-
-  try {
-    const billRes = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/billing`, {
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-      next: { revalidate: 0 } // Disable caching to get fresh bills
-    });
-
-    if (billRes.ok) {
-      billingList = await billRes.json();
-    }
-  } catch (error) {
-    console.error("Failed to fetch billing list:", error);
+    console.error("Failed to fetch billing data directly from DB:", error);
   }
 
   return (
