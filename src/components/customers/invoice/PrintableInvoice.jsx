@@ -6,7 +6,7 @@ import { formatCurrency, formatDate } from "../utils/invoiceCalculations";
  * Renders a pixel-perfect, clean A4 printable invoice sheet.
  * Includes absolute decorators, branding, item tables, summary totals, and stamp signatures.
  */
-export default function PrintableInvoice({ invoice }) {
+export default function PrintableInvoice({ invoice, id = "printable-customer-invoice" }) {
   if (!invoice) return null;
 
   const dateStr = formatDate(invoice.createdAt);
@@ -15,7 +15,7 @@ export default function PrintableInvoice({ invoice }) {
 
   return (
     <div
-      id="printable-customer-invoice"
+      id={id}
       className="border border-gray-100 rounded-2xl bg-white p-4 sm:p-8 shadow-sm flex flex-col justify-between min-h-[550px] relative overflow-hidden font-sans no-print-shadow text-gray-900"
     >
       {/* Invoice Watermark Decorator */}

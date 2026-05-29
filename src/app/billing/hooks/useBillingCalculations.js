@@ -1,5 +1,32 @@
 import { useState, useMemo, useEffect } from "react";
 
+// Helper to normalize Bangla and English digits to standard English float
+export const parseNum = (val) => {
+  if (val === null || val === undefined) return 0;
+  const s = String(val).trim();
+  if (s === "") return 0;
+  const banglaDigits = {
+    "০": "0", "১": "1", "২": "2", "৩": "3", "৪": "4",
+    "৫": "5", "৬": "6", "৭": "7", "৮": "8", "৯": "9"
+  };
+  const normalized = s.replace(/[০-৯]/g, (match) => banglaDigits[match]);
+  return parseFloat(normalized) || 0;
+};
+
+// Helper to convert standard English numbers back to Bangla digits
+export const englishToBanglaDigits = (val) => {
+  if (val === null || val === undefined) return "";
+  const s = String(val);
+  const banglaDigits = {
+    "0": "০", "1": "১", "2": "২", "3": "৩", "4": "৪",
+    "5": "৫", "6": "৬", "7": "৭", "8": "৮", "9": "৯"
+  };
+  return s.replace(/[0-9]/g, (match) => banglaDigits[match]);
+};
+
+// Check if string contains any Bangla digits
+export const hasBanglaDigits = (str) => /[০-৯]/.test(String(str));
+
 /**
  * Custom hook to handle all billing calculations, form states, and manual overrides.
  */
@@ -17,16 +44,16 @@ export default function useBillingCalculations({
     {
       id: "1",
       productName: "",
-      quantity: 1,
+      quantity: "1",
       unit: "pcs",
-      sellPrice: 0,
+      sellPrice: "",
     },
   ]);
 
-  const [discount, setDiscount] = useState(0);
-  const [vatPercent, setVatPercent] = useState(0);
+  const [discount, setDiscount] = useState("");
+  const [vatPercent, setVatPercent] = useState("");
 
-  // Keep paidAmount and dueAmount fully editable states.
+  // Keep paidAmount and dueAmount fully editable manual states.
   const [paidAmount, setPaidAmountState] = useState("");
   const [dueAmount, setDueAmountState] = useState("");
 
@@ -37,42 +64,37 @@ export default function useBillingCalculations({
     if (prefillAddress) setCustomerAddress(prefillAddress);
   }, [prefillName, prefillPhone, prefillAddress]);
 
-  // Subtotal Calculation
+  // Subtotal Calculation using parseNum to support Bangla digits
   const subtotal = useMemo(() => {
     return items.reduce(
-      (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.sellPrice) || 0),
+      (sum, item) => sum + parseNum(item.quantity) * parseNum(item.sellPrice),
       0
     );
   }, [items]);
 
-  // Grand Total Calculation
+  // Grand Total Calculation using parseNum to support Bangla digits
   const grandTotal = useMemo(() => {
-    const vatAmount = (subtotal * (Number(vatPercent) || 0)) / 100;
-    return Math.max(0, subtotal + vatAmount - (Number(discount) || 0));
+    const vatAmount = (subtotal * parseNum(vatPercent)) / 100;
+    return Math.max(0, subtotal + vatAmount - parseNum(discount));
   }, [subtotal, discount, vatPercent]);
 
-  // Intelligent syncing that doesn't block manual overrides:
-  // Whenever the grandTotal changes, we recalculate dueAmount based on paidAmount.
-  // If paidAmount is empty, we assume full payment is yet to be configured (or paid is grandTotal).
+  // Automatically calculate outstanding due amount based on grandTotal and paidAmount
   useEffect(() => {
     if (paidAmount === "") {
-      setDueAmountState("0");
+      // If no paid amount is written, outstanding is the grand total
+      const containsBangla = hasBanglaDigits(discount) || hasBanglaDigits(vatPercent) || items.some(item => hasBanglaDigits(item.sellPrice) || hasBanglaDigits(item.quantity));
+      setDueAmountState(containsBangla ? englishToBanglaDigits(grandTotal) : String(grandTotal));
     } else {
-      const paid = Number(paidAmount) || 0;
-      setDueAmountState(String(Math.max(0, grandTotal - paid)));
+      const paid = parseNum(paidAmount);
+      const computedDue = Math.max(0, grandTotal - paid);
+      // Keep output digit system aligned with the paid amount's digit system
+      setDueAmountState(hasBanglaDigits(paidAmount) ? englishToBanglaDigits(computedDue) : String(computedDue));
     }
-  }, [grandTotal, paidAmount]);
+  }, [grandTotal, paidAmount, discount, vatPercent, items]);
 
   // Direct state setters that act as custom handlers
   const handlePaidAmountChange = (val) => {
     setPaidAmountState(val);
-    // Automatically update due amount as a starting point, but user can override it
-    if (val === "") {
-      setDueAmountState("0");
-    } else {
-      const paid = Number(val) || 0;
-      setDueAmountState(String(Math.max(0, grandTotal - paid)));
-    }
   };
 
   const handleDueAmountChange = (val) => {
@@ -85,9 +107,9 @@ export default function useBillingCalculations({
       {
         id: Date.now().toString(),
         productName: "",
-        quantity: 1,
+        quantity: "1",
         unit: "pcs",
-        sellPrice: 0,
+        sellPrice: "",
       },
     ]);
   };
@@ -104,10 +126,8 @@ export default function useBillingCalculations({
   const handleItemFieldChange = (index, field, value) => {
     setItems((prev) => {
       const updated = [...prev];
-      if (field === "quantity") {
-        updated[index].quantity = Math.max(0, Number(value) || 0);
-      } else if (field === "sellPrice") {
-        updated[index].sellPrice = Math.max(0, Number(value) || 0);
+      if (field === "quantity" || field === "sellPrice") {
+        updated[index][field] = value;
       } else {
         updated[index][field] = value;
       }
@@ -123,13 +143,13 @@ export default function useBillingCalculations({
       {
         id: "1",
         productName: "",
-        quantity: 1,
+        quantity: "1",
         unit: "pcs",
-        sellPrice: 0,
+        sellPrice: "",
       },
     ]);
-    setDiscount(0);
-    setVatPercent(0);
+    setDiscount("");
+    setVatPercent("");
     setPaidAmountState("");
     setDueAmountState("");
   };

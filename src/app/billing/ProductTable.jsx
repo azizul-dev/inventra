@@ -78,8 +78,7 @@ export default function ProductTable({
 
                 <TableCell>
                   <Input
-                    type="number"
-                    min="1"
+                    type="text"
                     className="h-11 rounded-xl text-center"
                     value={item.quantity}
                     onChange={(e) =>
@@ -101,9 +100,9 @@ export default function ProductTable({
 
                 <TableCell>
                   <Input
-                    type="number"
-                    min="0"
-                    className="h-11 rounded-xl"
+                    type="text"
+                    placeholder="যেমন: ৫২০"
+                    className="h-11 rounded-xl font-bold"
                     value={item.sellPrice}
                     onChange={(e) =>
                       handleItemFieldChange(index, "sellPrice", e.target.value)
@@ -168,8 +167,7 @@ export default function ProductTable({
                     পরিমাণ
                   </label>
                   <Input
-                    type="number"
-                    min="1"
+                    type="text"
                     className="h-11 rounded-xl text-center bg-white border-gray-200"
                     value={item.quantity}
                     onChange={(e) =>
@@ -197,8 +195,8 @@ export default function ProductTable({
                     মূল্য (৳)
                   </label>
                   <Input
-                    type="number"
-                    min="0"
+                    type="text"
+                    placeholder="৫২০"
                     className="h-11 rounded-xl bg-white border-gray-200 font-bold"
                     value={item.sellPrice}
                     onChange={(e) =>

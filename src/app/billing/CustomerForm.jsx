@@ -115,9 +115,8 @@ export default function CustomerForm({
               পরিশোধিত টাকা (৳)
             </label>
             <Input
-              type="number"
-              min="0"
-              placeholder={`৳ ${grandTotal}`}
+              type="text"
+              placeholder="৳ যেমন: ৫২০"
               className="h-12 rounded-xl border-gray-200 focus:border-violet-500 text-green-700 font-bold"
               value={paidAmount}
               onChange={(e) => setPaidAmount(e.target.value)}
@@ -128,9 +127,8 @@ export default function CustomerForm({
               বকেয়া টাকা (৳)
             </label>
             <Input
-              type="number"
-              min="0"
-              placeholder="৳ 0"
+              type="text"
+              placeholder="৳ যেমন: ০"
               className="h-12 rounded-xl border-gray-200 focus:border-violet-500 text-rose-600 font-bold bg-white"
               value={dueAmount}
               onChange={(e) => setDueAmount(e.target.value)}

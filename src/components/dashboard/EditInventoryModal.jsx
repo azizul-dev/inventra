@@ -65,7 +65,7 @@ const EditInventoryModal = ({ item }) => {
           </button>
         </DialogTrigger>
 
-        <DialogContent className="h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl p-4 md:p-6">
+        <DialogContent aria-describedby={undefined} className="h-[90vh] w-full sm:max-w-4xl overflow-y-auto rounded-3xl p-4 md:p-6">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold">
               Edit Inventory

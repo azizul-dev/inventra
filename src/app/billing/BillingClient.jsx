@@ -14,7 +14,7 @@ import InvoicePreview from "./InvoicePreview";
 import InvoiceModal from "./InvoiceModal";
 
 // Hooks & Utilities
-import useBillingCalculations from "./hooks/useBillingCalculations";
+import useBillingCalculations, { parseNum } from "./hooks/useBillingCalculations";
 
 export default function BillingClient({
   session,
@@ -103,16 +103,16 @@ export default function BillingClient({
         customerName: customerName.trim(),
         customerAddress: customerAddress.trim(),
         customerPhone: customerPhone.trim(),
-        status: Number(dueAmount) === 0 ? "Paid" : "Due",
+        status: parseNum(dueAmount) === 0 ? "Paid" : "Due",
         items: items.map((item) => ({
           productName: item.productName.trim(),
-          quantity: Number(item.quantity) || 1,
+          quantity: parseNum(item.quantity) || 1,
           unit: item.unit.trim() || "pcs",
-          sellPrice: Number(item.sellPrice) || 0,
+          sellPrice: parseNum(item.sellPrice) || 0,
         })),
         total: grandTotal,
-        paidAmount: paidAmount === "" ? grandTotal : Number(paidAmount),
-        dueAmount: Number(dueAmount) || 0,
+        paidAmount: paidAmount === "" ? grandTotal : parseNum(paidAmount),
+        dueAmount: parseNum(dueAmount) || 0,
       };
 
       const baseUrl = (!process.env.NEXT_PUBLIC_SERVER_URL || process.env.NEXT_PUBLIC_SERVER_URL.includes("localhost:8000"))

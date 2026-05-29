@@ -44,7 +44,7 @@ export default function InvoiceModal({ isOpen, onOpenChange, selectedInvoice }) 
           logging: false,
         });
 
-        const imgData = canvas.toDataURL("image/png");
+        const imgData = canvas.toDataURL("image/jpeg", 1.0);
         const pdf = new jsPDF({
           orientation: "portrait",
           unit: "mm",
@@ -57,13 +57,13 @@ export default function InvoiceModal({ isOpen, onOpenChange, selectedInvoice }) 
         let heightLeft = imgHeight;
         let position = 0;
 
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
 
         while (heightLeft >= 0) {
           position = heightLeft - imgHeight;
           pdf.addPage();
-          pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+          pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
           heightLeft -= pageHeight;
         }
 
@@ -79,7 +79,7 @@ export default function InvoiceModal({ isOpen, onOpenChange, selectedInvoice }) 
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl p-4 sm:p-6 overflow-y-auto max-h-[95vh] rounded-3xl">
+      <DialogContent aria-describedby={undefined} className="sm:max-w-4xl p-4 sm:p-6 overflow-y-auto max-h-[95vh] rounded-3xl">
         <DialogHeader className="no-print">
           <DialogTitle className="text-xl font-bold flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <span>ইনভয়েস প্রিভিউ</span>
