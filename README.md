@@ -1,36 +1,237 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🚀 Inventra — Smart Inventory & Billing Management System
 
-## Getting Started
+![Inventra Logo](./public/images/logo.png)
 
-First, run the development server:
+Inventra is a modern full-stack inventory and billing management system built to simplify stock management, customer handling, invoice generation, and business analytics in one clean dashboard.
+
+Designed with performance, scalability, and beautiful UI in mind, Inventra helps businesses manage products, billing, customers, and inventory operations efficiently.
+
+---
+
+# ✨ Features
+
+## 📦 Inventory Management
+
+* Add new products
+* Update stock instantly
+* Edit product information
+* Delete products securely
+* Low stock warnings
+* Unit-based stock system
+
+---
+
+## 🧾 Billing System
+
+* Create professional invoices
+* Customer-based billing
+* Automatic total calculations
+* Paid & Due tracking
+* Billing history support
+* Smart invoice preview
+
+---
+
+## 👥 Customer Management
+
+* Customer profiles
+* Purchase history
+* Due amount tracking
+* Search customers instantly
+* Customer analytics
+
+---
+
+## 📊 Dashboard Analytics
+
+* Total sales overview
+* Revenue tracking
+* Low stock monitoring
+* Customer statistics
+* Business performance insights
+
+---
+
+## 🔐 Authentication & Authorization
+
+* Secure Google Authentication
+* JWT-based protected APIs
+* Admin-only inventory controls
+* Role-based UI rendering
+
+---
+
+# 🛠️ Tech Stack
+
+## Frontend
+
+* **Next.js 16**
+* **React 19**
+* **Tailwind CSS**
+* **Shadcn UI**
+* **Lucide React Icons**
+* **Sonner Toast**
+* **Framer Motion**
+
+---
+
+## Backend
+
+* **Node.js**
+* **Express.js**
+* **MongoDB Atlas**
+* **JWT Authentication**
+* **Better Auth**
+* **JOSE JWT Verification**
+
+---
+
+## Database
+
+* **MongoDB**
+* Collections:
+
+  * users
+  * inventory
+  * billing
+  * sessions
+
+---
+
+# 🎨 UI & Design
+
+* Fully Responsive Design
+* Premium Dashboard Layout
+* Modern Glassmorphism Inspired Cards
+* Gradient UI Elements
+* Smooth Hover Animations
+* Mobile Optimized Experience
+
+---
+
+# 📁 Project Structure
+
+```bash
+inventra/
+│
+├── public/
+│   └── images/
+│       ├── 1.png
+│       ├── 2.png
+│       ├── 3.png
+│       └── logo.png
+│
+├── src/
+│   ├── app/
+│   ├── components/
+│   ├── lib/
+│   ├── hooks/
+│   ├── utils/
+│   └── services/
+│
+├── server/
+├── package.json
+└── README.md
+```
+
+---
+
+# 📸 Project Screenshots
+
+## Dashboard
+
+![Dashboard](./public/images/1)
+
+---
+
+## Inventory Management
+
+![Inventory](./public/images/2)
+
+---
+
+## Billing & Customers
+
+![Billing](./public/images/3)
+
+---
+
+# ⚡ Installation
+
+## Clone the project
+
+```bash
+git clone YOUR_REPOSITORY_URL
+```
+
+---
+
+## Install dependencies
+
+```bash
+npm install
+```
+
+---
+
+## Setup Environment Variables
+
+Create a `.env.local` file and add:
+
+```env
+NEXT_PUBLIC_SERVER_URL=
+MONGODB_URI=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+BETTER_AUTH_SECRET=
+```
+
+---
+
+## Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+# 🌐 Live Demo
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+🔗 https://inventra-sandy.vercel.app/
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+# 🔒 Admin Features
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Only Admin Users Can:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+* Add inventory
+* Edit inventory
+* Delete products
+* Access protected routes
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# 📈 Future Improvements
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+* PDF Invoice Download
+* Barcode Scanner Support
+* Multi-user Roles
+* Sales Reports Export
+* Dark Mode
+* Email Invoice System
+
+---
+
+# 👨‍💻 Developer
+
+Built with passion using modern web technologies and clean UI principles.
+
+---
+
+# ⭐ Support
+
+If you like this project, consider giving it a star ⭐
+
+---

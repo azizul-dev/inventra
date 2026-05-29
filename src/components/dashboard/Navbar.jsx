@@ -3,15 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import {
-  Sheet,
-  SheetContent,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-
-import { Menu } from "lucide-react";
 import { Great_Vibes } from "next/font/google";
 import { SidebarTrigger } from "../ui/sidebar";
 
