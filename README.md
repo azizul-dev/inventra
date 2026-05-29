@@ -140,19 +140,19 @@ inventra/
 
 ## Dashboard
 
-![Dashboard](./public/images/1)
+![Dashboard](./public/images/1.png)
 
 ---
 
 ## Inventory Management
 
-![Inventory](./public/images/2)
+![Inventory](./public/images/2.png)
 
 ---
 
 ## Billing & Customers
 
-![Billing](./public/images/3)
+![Billing](./public/images/3.png)
 
 ---
 
