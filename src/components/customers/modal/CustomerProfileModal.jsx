@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { History, Phone, MapPin, Receipt, ArrowLeft, Printer, Download, Eye, FileText, CheckCircle2, ChevronRight } from "lucide-react";
+import { History, Phone, MapPin, Receipt, ArrowLeft, Printer, Download, Eye, FileText, CheckCircle2, ChevronRight, Edit3, Trash2 } from "lucide-react";
 import PrintableInvoice from "../invoice/PrintableInvoice";
 import { formatCurrency } from "../utils/invoiceCalculations";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,9 @@ export default function CustomerProfileModal({
   onOpenChange,
   customer,
   onDownloadPDF,
+  onDeleteBill,
+  onEditBill,
+  isAdmin = false,
 }) {
   const router = useRouter();
   const [activeInvoice, setActiveInvoice] = useState(null);
@@ -190,18 +193,27 @@ export default function CustomerProfileModal({
                   তালিকায় ফিরুন
                 </Button>
                 
-                <div className="flex gap-1.5">
+                <div className="flex gap-1.5 flex-wrap">
+                  {isAdmin && (
+                    <Button
+                      onClick={() => onEditBill(activeInvoice)}
+                      className="h-8 px-2.5 rounded-xl flex items-center gap-1 text-[11px] bg-violet-600 hover:bg-violet-700 text-white cursor-pointer"
+                    >
+                      <Edit3 className="h-3.5 w-3.5" />
+                      এডিট
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     onClick={() => window.print()}
-                    className="h-8 px-3 rounded-xl flex items-center gap-1 text-[11px] cursor-pointer"
+                    className="h-8 px-2.5 rounded-xl flex items-center gap-1 text-[11px] cursor-pointer"
                   >
                     <Printer className="h-3.5 w-3.5" />
                     প্রিন্ট
                   </Button>
                   <Button
                     onClick={() => onDownloadPDF(activeInvoice)}
-                    className="h-8 px-3 rounded-xl flex items-center gap-1 text-[11px] bg-cyan-600 hover:bg-cyan-700 text-white cursor-pointer"
+                    className="h-8 px-2.5 rounded-xl flex items-center gap-1 text-[11px] bg-cyan-600 hover:bg-cyan-700 text-white cursor-pointer"
                   >
                     <Download className="h-3.5 w-3.5" />
                     ডাউনলোড
@@ -302,7 +314,16 @@ export default function CustomerProfileModal({
                     রশিদ আইডি: #{activeInvoice._id?.substring(18) || "NEW"}
                   </h4>
                   
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
+                    {isAdmin && (
+                      <Button
+                        onClick={() => onEditBill(activeInvoice)}
+                        className="h-9 rounded-xl flex items-center gap-1.5 text-xs bg-violet-600 hover:bg-violet-700 text-white cursor-pointer"
+                      >
+                        <Edit3 className="h-4 w-4" />
+                        এডিট করুন
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       onClick={() => window.print()}

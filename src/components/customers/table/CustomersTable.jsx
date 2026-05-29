@@ -18,6 +18,7 @@ export default function CustomersTable({
   onViewHistory,
   onCreateInvoice,
   onDeleteCustomer,
+  isAdmin = false,
 }) {
   const [customerToDelete, setCustomerToDelete] = useState(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -78,6 +79,7 @@ export default function CustomersTable({
                   onViewHistory={() => onViewHistory(customer)}
                   onCreateInvoice={() => onCreateInvoice(customer)}
                   onDeleteCustomer={() => triggerDeleteConfirm(customer)}
+                  isAdmin={isAdmin}
                 />
               ))
             )}
@@ -180,14 +182,16 @@ export default function CustomersTable({
                     নতুন রশিদ
                   </Button>
 
-                  <Button
-                    variant="ghost"
-                    onClick={() => triggerDeleteConfirm(customer)}
-                    className="h-10 w-10 p-0 rounded-xl text-rose-500 bg-rose-50 hover:bg-rose-100 transition cursor-pointer"
-                    title="গ্রাহক মুছুন"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {isAdmin && (
+                    <Button
+                      variant="ghost"
+                      onClick={() => triggerDeleteConfirm(customer)}
+                      className="h-10 w-10 p-0 rounded-xl text-rose-500 bg-rose-50 hover:bg-rose-100 transition cursor-pointer"
+                      title="গ্রাহক মুছুন"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             );

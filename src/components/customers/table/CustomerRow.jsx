@@ -7,7 +7,7 @@ import { formatCurrency } from "../utils/invoiceCalculations";
  * CustomerRow Component
  * Renders a single desktop table row for a customer profile.
  */
-export default function CustomerRow({ customer, onViewHistory, onCreateInvoice, onDeleteCustomer }) {
+export default function CustomerRow({ customer, onViewHistory, onCreateInvoice, onDeleteCustomer, isAdmin = false }) {
   const latestDateStr = customer.latestBillDate
     ? new Date(customer.latestBillDate).toLocaleDateString("bn-BD")
     : "অজানা";
@@ -68,14 +68,16 @@ export default function CustomerRow({ customer, onViewHistory, onCreateInvoice, 
             নতুন রশিদ
           </Button>
 
-          <Button
-            variant="ghost"
-            onClick={onDeleteCustomer}
-            className="h-9 w-9 p-0 rounded-xl text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-            title="গ্রাহক মুছুন"
-          >
-            <Trash2 className="h-4.5 w-4.5" />
-          </Button>
+          {isAdmin && (
+            <Button
+              variant="ghost"
+              onClick={onDeleteCustomer}
+              className="h-9 w-9 p-0 rounded-xl text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+              title="গ্রাহক মুছুন"
+            >
+              <Trash2 className="h-4.5 w-4.5" />
+            </Button>
+          )}
         </div>
       </td>
     </tr>

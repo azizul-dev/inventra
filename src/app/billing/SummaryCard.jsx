@@ -65,6 +65,7 @@ export default function SummaryCard({
   paidAmount,
   dueAmount,
   isSubmitting,
+  editBill = null,
 }) {
   const router = useRouter();
 
@@ -127,7 +128,9 @@ export default function SummaryCard({
           className="w-full h-12 rounded-2xl bg-violet-600 hover:bg-violet-700 text-white font-bold shadow-lg shadow-violet-200 cursor-pointer text-sm"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "বিলটি সংরক্ষণ হচ্ছে..." : "✓ বিলটি সংরক্ষণ করুন"}
+          {editBill
+            ? (isSubmitting ? "বিলটি আপডেট হচ্ছে..." : "✓ বিলটি আপডেট করুন")
+            : (isSubmitting ? "বিলটি সংরক্ষণ হচ্ছে..." : "✓ বিলটি সংরক্ষণ করুন")}
         </Button>
         <Button
           type="button"

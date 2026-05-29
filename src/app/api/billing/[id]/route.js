@@ -160,15 +160,30 @@ export async function PATCH(req, { params }) {
 
     const { _id, ...updatedData } = body;
 
-    const updatedWithTime = {
-      ...updatedData,
+    const normalizedData = {
+      customerName: updatedData.customerName ? updatedData.customerName.trim() : "",
+      customerAddress: updatedData.customerAddress ? updatedData.customerAddress.trim() : "",
+      customerPhone: updatedData.customerPhone ? updatedData.customerPhone.trim() : "",
+      status: updatedData.status || (parseNum(updatedData.dueAmount) === 0 ? "Paid" : "Due"),
+      total: parseNum(updatedData.total),
+      paidAmount: updatedData.paidAmount !== undefined ? parseNum(updatedData.paidAmount) : parseNum(updatedData.total),
+      dueAmount: updatedData.dueAmount !== undefined ? parseNum(updatedData.dueAmount) : 0,
       updatedAt: new Date(),
     };
 
-    // If items are being updated, adjust the inventory stock accordingly
     if (updatedData.items && Array.isArray(updatedData.items)) {
+      normalizedData.items = updatedData.items.map((item) => ({
+        productName: item.productName ? item.productName.trim() : "",
+        quantity: parseNum(item.quantity),
+        unit: item.unit ? item.unit.trim() : "pcs",
+        sellPrice: parseNum(item.sellPrice),
+      }));
+    }
+
+    // If items are being updated, adjust the inventory stock accordingly
+    if (normalizedData.items && Array.isArray(normalizedData.items)) {
       const oldItems = oldBilling.items || [];
-      const newItems = updatedData.items;
+      const newItems = normalizedData.items;
 
       // Map of old item quantities
       const oldItemsMap = {};
@@ -219,7 +234,7 @@ export async function PATCH(req, { params }) {
 
     const result = await billingCollection.updateOne(
       { _id: new ObjectId(id) },
-      { $set: updatedWithTime }
+      { $set: normalizedData }
     );
 
     return NextResponse.json({

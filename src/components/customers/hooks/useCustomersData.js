@@ -92,6 +92,55 @@ export function useCustomersData(initialBillingList = [], token) {
     }
   };
 
+  /**
+   * Deletes a single bill/invoice, restoring associated inventory stock.
+   */
+  const deleteBill = async (billId) => {
+    if (!billId) return false;
+
+    const toastId = toast.loading(`রশিদ #${billId.substring(18)} মুছা হচ্ছে...`);
+
+    try {
+      const baseUrl = (!process.env.NEXT_PUBLIC_SERVER_URL || process.env.NEXT_PUBLIC_SERVER_URL.includes("localhost:8000"))
+        ? "/api"
+        : process.env.NEXT_PUBLIC_SERVER_URL;
+
+      const res = await fetch(`${baseUrl}/billing/${billId}`, {
+        method: "DELETE",
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        let errMsg = `রশিদ #${billId.substring(18)} মুছতে সমস্যা হয়েছে`;
+        try {
+          const errData = await res.json();
+          if (errData && errData.error) {
+            errMsg = `${errMsg} (${errData.error})`;
+          }
+        } catch (e) {}
+        throw new Error(errMsg);
+      }
+
+      // Successfully deleted bill. Update local state.
+      setBillingList((prev) => prev.filter((b) => b._id !== billId));
+
+      toast.success("রশিদটি সফলভাবে মুছা হয়েছে!", {
+        id: toastId,
+      });
+
+      router.refresh();
+      return true;
+    } catch (error) {
+      console.error("Invoice deletion error:", error);
+      toast.error(error.message || "রশিদ মুছতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।", {
+        id: toastId,
+      });
+      return false;
+    }
+  };
+
   return {
     billingList,
     setBillingList,
@@ -100,5 +149,6 @@ export function useCustomersData(initialBillingList = [], token) {
     customersData,
     filteredCustomers,
     deleteCustomer,
+    deleteBill,
   };
 }

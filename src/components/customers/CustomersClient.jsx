@@ -22,6 +22,7 @@ export default function CustomersClient({
   initialBillingList = [],
 }) {
   const router = useRouter();
+  const isAdmin = session?.user?.role === "admin";
 
   // Custom hook managing state, search filters, and delete operations
   const {
@@ -29,18 +30,29 @@ export default function CustomersClient({
     setSearchQuery,
     filteredCustomers,
     deleteCustomer,
+    deleteBill,
     billingList,
   } = useCustomersData(initialBillingList, token);
 
   // Custom hook aggregating key stats indicators for top summary cards
   const stats = useCRMStats(filteredCustomers, billingList);
 
-  // Modal drawer state controls
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  // Modal drawer state controls (tracked by reactive lookup key)
+  const [selectedCustomerKey, setSelectedCustomerKey] = useState(null);
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
 
+  // Compute selected customer details reactively from the current filtered list
+  const currentCustomer = useMemo(() => {
+    if (!selectedCustomerKey) return null;
+    return filteredCustomers.find((c) => {
+      const key = c.phone ? c.phone : c.name.toLowerCase();
+      return key === selectedCustomerKey;
+    });
+  }, [filteredCustomers, selectedCustomerKey]);
+
   const handleViewHistory = (customer) => {
-    setSelectedCustomer(customer);
+    const key = customer.phone ? customer.phone : customer.name.toLowerCase();
+    setSelectedCustomerKey(key);
     setIsCustomerModalOpen(true);
   };
 
@@ -54,6 +66,11 @@ export default function CustomersClient({
 
   const handleDownloadPDF = async (invoice) => {
     await generateInvoicePDF(invoice, "printable-customer-invoice");
+  };
+
+  const handleEditBill = (bill) => {
+    setIsCustomerModalOpen(false);
+    router.push(`/billing?editBillId=${bill._id}`);
   };
 
   return (
@@ -132,14 +149,20 @@ export default function CustomersClient({
         onViewHistory={handleViewHistory}
         onCreateInvoice={handleCreateInvoice}
         onDeleteCustomer={deleteCustomer}
+        isAdmin={isAdmin}
       />
 
       {/* Client Profile and Bill Timeline Drawer Modal (Unified single modal details preview) */}
       <CustomerProfileModal
         isOpen={isCustomerModalOpen}
-        onOpenChange={setIsCustomerModalOpen}
-        customer={selectedCustomer}
+        onOpenChange={(open) => {
+          setIsCustomerModalOpen(open);
+          if (!open) setSelectedCustomerKey(null);
+        }}
+        customer={currentCustomer}
         onDownloadPDF={handleDownloadPDF}
+        onDeleteBill={deleteBill}
+        onEditBill={handleEditBill}
       />
     </div>
   );

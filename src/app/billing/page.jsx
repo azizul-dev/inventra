@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import BillingClient from "./BillingClient";
 import { getDb } from "@/lib/db";
+import { ObjectId } from "mongodb";
 
 export default async function BillingPage({ searchParams }) {
   const session = await auth.api.getSession({
@@ -21,9 +22,11 @@ export default async function BillingPage({ searchParams }) {
   const prefillName = resolvedParams?.customerName || "";
   const prefillPhone = resolvedParams?.customerPhone || "";
   const prefillAddress = resolvedParams?.customerAddress || "";
+  const editBillId = resolvedParams?.editBillId || "";
 
   let inventory = [];
   let billingList = [];
+  let editBill = null;
 
   try {
     const db = await getDb();
@@ -47,6 +50,18 @@ export default async function BillingPage({ searchParams }) {
       createdAt: bill.createdAt instanceof Date ? bill.createdAt.toISOString() : bill.createdAt,
       updatedAt: bill.updatedAt instanceof Date ? bill.updatedAt.toISOString() : bill.updatedAt,
     }));
+
+    if (editBillId && ObjectId.isValid(editBillId)) {
+      const editBillData = await billingCollection.findOne({ _id: new ObjectId(editBillId) });
+      if (editBillData) {
+        editBill = {
+          ...editBillData,
+          _id: editBillData._id.toString(),
+          createdAt: editBillData.createdAt instanceof Date ? editBillData.createdAt.toISOString() : editBillData.createdAt,
+          updatedAt: editBillData.updatedAt instanceof Date ? editBillData.updatedAt.toISOString() : editBillData.updatedAt,
+        };
+      }
+    }
   } catch (error) {
     console.error("Failed to fetch billing data directly from DB:", error);
   }
@@ -60,6 +75,7 @@ export default async function BillingPage({ searchParams }) {
       prefillName={prefillName}
       prefillPhone={prefillPhone}
       prefillAddress={prefillAddress}
+      editBill={editBill}
     />
   );
 }

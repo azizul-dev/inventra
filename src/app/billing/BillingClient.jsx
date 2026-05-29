@@ -26,6 +26,7 @@ export default function BillingClient({
   prefillName = "",
   prefillPhone = "",
   prefillAddress = "",
+  editBill = null,
 }) {
     console.log("📦 inventory:", initialInventory); // ✅ এই লাইনটা যোগ করুন
 
@@ -64,6 +65,7 @@ export default function BillingClient({
     prefillName,
     prefillPhone,
     prefillAddress,
+    editBill,
   });
 
   // Extract unique customers for auto-populate lookup
@@ -125,8 +127,11 @@ export default function BillingClient({
           ? "/api"
           : process.env.NEXT_PUBLIC_SERVER_URL;
 
-      const res = await fetch(`${baseUrl}/addBilling`, {
-        method: "POST",
+      const url = editBill ? `${baseUrl}/billing/${editBill._id}` : `${baseUrl}/addBilling`;
+      const method = editBill ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method: method,
         headers: {
           "content-type": "application/json",
           authorization: `Bearer ${tokenData?.token}`,
@@ -137,7 +142,7 @@ export default function BillingClient({
       const data = await res.json();
 
       if (data.success) {
-        toast.success("বিলটি সফলভাবে তৈরি করা হয়েছে!");
+        toast.success(editBill ? "বিলটি সফলভাবে আপডেট করা হয়েছে!" : "বিলটি সফলভাবে তৈরি করা হয়েছে!");
 
         // Reset form
         resetForm();
@@ -191,10 +196,12 @@ export default function BillingClient({
         <div>
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
             <ReceiptText className="h-8 w-8 text-violet-600 animate-pulse" />
-            Create Bill & Invoice
+            {editBill ? `Edit Bill & Invoice #${editBill._id.substring(18)}` : "Create Bill & Invoice"}
           </h1>
           <p className="mt-1 text-gray-500">
-            গ্রাহকের তথ্য এবং পণ্যের বিবরণ পূরণ করে নতুন রশিদ তৈরি করুন।
+            {editBill
+              ? "রশিদের তথ্য এবং পণ্যের বিবরণ পরিবর্তন করে বিলটি আপডেট করুন।"
+              : "গ্রাহকের তথ্য এবং পণ্যের বিবরণ পূরণ করে নতুন রশিদ তৈরি করুন।"}
           </p>
         </div>
       </div>
@@ -265,6 +272,7 @@ export default function BillingClient({
                 paidAmount={paidAmount}
                 dueAmount={dueAmount}
                 isSubmitting={isSubmitting}
+                editBill={editBill}
               />
             </div>
           </div>
