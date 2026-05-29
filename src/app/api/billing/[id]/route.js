@@ -4,6 +4,32 @@ import { headers } from "next/headers";
 import { getDb } from "@/lib/db";
 import { ObjectId } from "mongodb";
 
+// Helper to normalize Bangla and English digits to standard English float
+function parseNum(val) {
+  if (val === null || val === undefined) return 0;
+  const s = String(val).trim();
+  if (s === "") return 0;
+  const banglaDigits = {
+    "০": "0", "১": "1", "২": "2", "৩": "3", "৪": "4",
+    "৫": "5", "৬": "6", "৭": "7", "৮": "8", "৯": "9"
+  };
+  const normalized = s.replace(/[০-৯]/g, (match) => banglaDigits[match]);
+  return parseFloat(normalized) || 0;
+}
+
+// Helper to query product names robustly ignoring leading/trailing spaces and case
+function getProductQuery(productName) {
+  const trimmed = String(productName).trim();
+  const escaped = trimmed.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  return {
+    $or: [
+      { productName: productName },
+      { productName: trimmed },
+      { productName: new RegExp("^\\s*" + escaped + "\\s*$", "i") }
+    ]
+  };
+}
+
 // GET single billing
 export async function GET(req, { params }) {
   try {
@@ -57,6 +83,39 @@ export async function DELETE(req, { params }) {
 
     const db = await getDb();
     const billingCollection = db.collection("billing");
+    const inventoryCollection = db.collection("inventor");
+
+    // Find the bill first to get the items
+    const billing = await billingCollection.findOne({ _id: new ObjectId(id) });
+    if (!billing) {
+      return NextResponse.json({ error: "Billing not found" }, { status: 404 });
+    }
+
+    // Restore inventory stock safely for each item in the bill
+    if (billing.items && Array.isArray(billing.items)) {
+      for (const item of billing.items) {
+        if (item.productName) {
+          const qty = parseNum(item.quantity);
+          if (qty !== 0) {
+            const product = await inventoryCollection.findOne(getProductQuery(item.productName));
+            if (product) {
+              const currentStock = parseNum(product.stock);
+              const newStock = currentStock + qty;
+              await inventoryCollection.updateOne(
+                { _id: product._id },
+                {
+                  $set: {
+                    stock: newStock,
+                    updatedAt: new Date(),
+                  },
+                }
+              );
+            }
+          }
+        }
+      }
+    }
+
     const result = await billingCollection.deleteOne({
       _id: new ObjectId(id),
     });
@@ -67,7 +126,7 @@ export async function DELETE(req, { params }) {
     });
   } catch (error) {
     console.error("DELETE /api/billing/[id] error:", error);
-    return NextResponse.json({ error: "Failed to delete billing" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to delete billing: " + error.message }, { status: 500 });
   }
 }
 
@@ -91,6 +150,13 @@ export async function PATCH(req, { params }) {
     const body = await req.json();
     const db = await getDb();
     const billingCollection = db.collection("billing");
+    const inventoryCollection = db.collection("inventor");
+
+    // Find the old bill to compare items
+    const oldBilling = await billingCollection.findOne({ _id: new ObjectId(id) });
+    if (!oldBilling) {
+      return NextResponse.json({ error: "Billing not found" }, { status: 404 });
+    }
 
     const { _id, ...updatedData } = body;
 
@@ -98,6 +164,58 @@ export async function PATCH(req, { params }) {
       ...updatedData,
       updatedAt: new Date(),
     };
+
+    // If items are being updated, adjust the inventory stock accordingly
+    if (updatedData.items && Array.isArray(updatedData.items)) {
+      const oldItems = oldBilling.items || [];
+      const newItems = updatedData.items;
+
+      // Map of old item quantities
+      const oldItemsMap = {};
+      for (const item of oldItems) {
+        if (item.productName) {
+          oldItemsMap[item.productName] = (oldItemsMap[item.productName] || 0) + parseNum(item.quantity);
+        }
+      }
+
+      // Map of new item quantities
+      const newItemsMap = {};
+      for (const item of newItems) {
+        if (item.productName) {
+          newItemsMap[item.productName] = (newItemsMap[item.productName] || 0) + parseNum(item.quantity);
+        }
+      }
+
+      // Get all unique product names
+      const allProductNames = new Set([
+        ...Object.keys(oldItemsMap),
+        ...Object.keys(newItemsMap),
+      ]);
+
+      // Adjust inventory stock safely for each product
+      for (const productName of allProductNames) {
+        const qtyOld = oldItemsMap[productName] || 0;
+        const qtyNew = newItemsMap[productName] || 0;
+        const diff = qtyOld - qtyNew; // If old > new, stock increases. If old < new, stock decreases.
+
+        if (diff !== 0) {
+          const product = await inventoryCollection.findOne(getProductQuery(productName));
+          if (product) {
+            const currentStock = parseNum(product.stock);
+            const newStock = currentStock + diff;
+            await inventoryCollection.updateOne(
+              { _id: product._id },
+              {
+                $set: {
+                  stock: newStock,
+                  updatedAt: new Date(),
+                },
+              }
+            );
+          }
+        }
+      }
+    }
 
     const result = await billingCollection.updateOne(
       { _id: new ObjectId(id) },
@@ -110,6 +228,6 @@ export async function PATCH(req, { params }) {
     });
   } catch (error) {
     console.error("PATCH /api/billing/[id] error:", error);
-    return NextResponse.json({ error: "Failed to update billing" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to update billing: " + error.message }, { status: 500 });
   }
 }

@@ -59,7 +59,14 @@ export function useCustomersData(initialBillingList = [], token) {
           },
         });
         if (!res.ok) {
-          throw new Error(`রশিদ #${bill._id.substring(18)} মুছতে সমস্যা হয়েছে`);
+          let errMsg = `রশিদ #${bill._id.substring(18)} মুছতে সমস্যা হয়েছে`;
+          try {
+            const errData = await res.json();
+            if (errData && errData.error) {
+              errMsg = `${errMsg} (${errData.error})`;
+            }
+          } catch (e) {}
+          throw new Error(errMsg);
         }
         return res.json();
       });

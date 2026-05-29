@@ -31,6 +31,8 @@ export default async function BillingPage({ searchParams }) {
     const billingCollection = db.collection("billing");
 
     const invData = await inventoryCollection.find().toArray();
+    console.log("🔍 RAW inventory count:", invData.length); 
+
     inventory = invData.map(item => ({
       ...item,
       _id: item._id.toString(),

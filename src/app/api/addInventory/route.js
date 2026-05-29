@@ -14,6 +14,13 @@ export async function POST(req) {
     }
 
     const body = await req.json();
+    
+    // Trim string inputs to prevent trailing whitespaces
+    if (body.productName) body.productName = body.productName.trim();
+    if (body.category) body.category = body.category.trim();
+    if (body.unit) body.unit = body.unit.trim();
+    if (body.brand) body.brand = body.brand.trim();
+
     const db = await getDb();
     const inventoryCollection = db.collection("inventor");
 

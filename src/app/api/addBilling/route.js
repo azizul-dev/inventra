@@ -3,6 +3,32 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { getDb } from "@/lib/db";
 
+// Helper to normalize Bangla and English digits to standard English float
+function parseNum(val) {
+  if (val === null || val === undefined) return 0;
+  const s = String(val).trim();
+  if (s === "") return 0;
+  const banglaDigits = {
+    "০": "0", "১": "1", "২": "2", "৩": "3", "৪": "4",
+    "৫": "5", "৬": "6", "৭": "7", "৮": "8", "৯": "9"
+  };
+  const normalized = s.replace(/[০-৯]/g, (match) => banglaDigits[match]);
+  return parseFloat(normalized) || 0;
+}
+
+// Helper to query product names robustly ignoring leading/trailing spaces and case
+function getProductQuery(productName) {
+  const trimmed = String(productName).trim();
+  const escaped = trimmed.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  return {
+    $or: [
+      { productName: productName },
+      { productName: trimmed },
+      { productName: new RegExp("^\\s*" + escaped + "\\s*$", "i") }
+    ]
+  };
+}
+
 export async function POST(req) {
   try {
     const session = await auth.api.getSession({
@@ -36,13 +62,13 @@ export async function POST(req) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Items validation
+    // Items validation using parseNum
     const validItems = items.every(
       (item) =>
         item.productName &&
-        item.quantity > 0 &&
+        parseNum(item.quantity) > 0 &&
         item.unit &&
-        item.sellPrice >= 0
+        parseNum(item.sellPrice) >= 0
     );
 
     if (!validItems) {
@@ -59,17 +85,41 @@ export async function POST(req) {
       status,
       items: items.map((item) => ({
         productName: item.productName,
-        quantity: Number(item.quantity),
+        quantity: parseNum(item.quantity),
         unit: item.unit,
-        sellPrice: Number(item.sellPrice),
+        sellPrice: parseNum(item.sellPrice),
       })),
-      total: Number(total),
-      paidAmount: paidAmount !== undefined ? Number(paidAmount) : Number(total),
-      dueAmount: dueAmount !== undefined ? Number(dueAmount) : 0,
+      total: parseNum(total),
+      paidAmount: paidAmount !== undefined ? parseNum(paidAmount) : parseNum(total),
+      dueAmount: dueAmount !== undefined ? parseNum(dueAmount) : 0,
       createdAt: new Date(),
     };
 
     const result = await billingCollection.insertOne(billingData);
+
+    // Update inventory stock safely for each item in the bill
+    const inventoryCollection = db.collection("inventor");
+    for (const item of billingData.items) {
+      if (item.productName) {
+        const qty = parseNum(item.quantity);
+        if (qty !== 0) {
+          const product = await inventoryCollection.findOne(getProductQuery(item.productName));
+          if (product) {
+            const currentStock = parseNum(product.stock);
+            const newStock = currentStock - qty;
+            await inventoryCollection.updateOne(
+              { _id: product._id },
+              {
+                $set: {
+                  stock: newStock,
+                  updatedAt: new Date(),
+                },
+              }
+            );
+          }
+        }
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -77,6 +127,6 @@ export async function POST(req) {
     });
   } catch (error) {
     console.error("POST /api/addBilling error:", error);
-    return NextResponse.json({ error: "Failed to add billing" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to add billing: " + error.message }, { status: 500 });
   }
 }

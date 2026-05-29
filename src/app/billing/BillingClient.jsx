@@ -14,7 +14,9 @@ import InvoicePreview from "./InvoicePreview";
 import InvoiceModal from "./InvoiceModal";
 
 // Hooks & Utilities
-import useBillingCalculations, { parseNum } from "./hooks/useBillingCalculations";
+import useBillingCalculations, {
+  parseNum,
+} from "./hooks/useBillingCalculations";
 
 export default function BillingClient({
   session,
@@ -25,6 +27,8 @@ export default function BillingClient({
   prefillPhone = "",
   prefillAddress = "",
 }) {
+    console.log("📦 inventory:", initialInventory); // ✅ এই লাইনটা যোগ করুন
+
   const router = useRouter();
   const [billingList, setBillingList] = useState(initialBillingList);
 
@@ -115,9 +119,11 @@ export default function BillingClient({
         dueAmount: parseNum(dueAmount) || 0,
       };
 
-      const baseUrl = (!process.env.NEXT_PUBLIC_SERVER_URL || process.env.NEXT_PUBLIC_SERVER_URL.includes("localhost:8000"))
-        ? "/api"
-        : process.env.NEXT_PUBLIC_SERVER_URL;
+      const baseUrl =
+        !process.env.NEXT_PUBLIC_SERVER_URL ||
+        process.env.NEXT_PUBLIC_SERVER_URL.includes("localhost:8000")
+          ? "/api"
+          : process.env.NEXT_PUBLIC_SERVER_URL;
 
       const res = await fetch(`${baseUrl}/addBilling`, {
         method: "POST",
@@ -218,6 +224,7 @@ export default function BillingClient({
               {/* CARD 2: Product Items */}
               <ProductTable
                 items={items}
+                inventory={initialInventory}
                 addItemRow={addItemRow}
                 removeItemRow={removeItemRow}
                 handleItemFieldChange={handleItemFieldChange}
