@@ -1,3 +1,4 @@
+
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import DashboardTables from "@/components/dashboard/DashboardTables";
 import Navbar from "@/components/dashboard/Navbar";
@@ -10,6 +11,7 @@ export default function Home() {
       <DashboardHeader/>
       <StatsCard/>
       <DashboardTables/>
+      
     </main>
   );
 }

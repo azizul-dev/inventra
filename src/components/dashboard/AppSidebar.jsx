@@ -28,6 +28,8 @@ import {
   LogIn,
   LogOut,
   UserCircle,
+  BarChart2,
+  HouseHeart,
 } from "lucide-react";
 
 import { authClient } from "@/lib/auth-client";
@@ -44,7 +46,7 @@ export function AppSidebar() {
   const isAdmin = session?.user?.role === "admin";
 
   const allItems = [
-    { title: "Dashboard", url: "/", icon: LayoutDashboard },
+    { title: "Home", url: "/", icon: HouseHeart },
 
     {
       title: "Add Inventory",
@@ -58,6 +60,8 @@ export function AppSidebar() {
     { title: "Customers", url: "/customers", icon: Users },
 
     { title: "Billing", url: "/billing", icon: ReceiptText },
+    { title: "Analytics", url: "/analytics", icon: BarChart2 },
+
   ];
 
   const items = allItems.filter((item) => {

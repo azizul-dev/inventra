@@ -1,180 +1,257 @@
-const recentSales = [
-  {
-    name: "Karim Store",
-    product: "Rod 30 KG",
-    amount: "৳ 8,200",
-    status: "Paid",
-    color: "bg-green-100 text-green-700",
-    dot: "bg-green-600",
-  },
+"use client";
 
-  {
-    name: "Rahim Traders",
-    product: "Cement 10 Bag",
-    amount: "৳ 6,500",
-    status: "Due",
-    color: "bg-red-100 text-red-700",
-    dot: "bg-red-600",
-  },
+import { useState, useEffect } from "react";
+import { authClient } from "@/lib/auth-client";
 
-  {
-    name: "Alam Mix",
-    product: "Hardware",
-    amount: "৳ 1,750",
-    status: "Paid",
-    color: "bg-green-100 text-green-700",
-    dot: "bg-green-600",
-  },
+// ─────────────────────────────────────────────
+// Helper: সর্বোচ্চ stock value বের করা (progress bar এর জন্য)
+// ─────────────────────────────────────────────
+function getStockPercent(stock, maxStock) {
+  if (!maxStock || maxStock === 0) return 0;
+  const percent = (stock / maxStock) * 100;
+  return Math.min(Math.max(percent, 0), 100);
+}
 
-  {
-    name: "Salam Brothers",
-    product: "Rod 40 KG",
-    amount: "৳ 2,800",
-    status: "Due",
-    color: "bg-red-100 text-red-700",
-    dot: "bg-red-600",
-  },
-];
+// ─────────────────────────────────────────────
+// Helper: stock এর পরিমাণ অনুযায়ী color ঠিক করা
+// ─────────────────────────────────────────────
+function getStockColor(percent) {
+  if (percent <= 15) return { bar: "bg-red-500", text: "text-red-600" };
+  if (percent <= 35) return { bar: "bg-orange-500", text: "text-orange-600" };
+  if (percent <= 60) return { bar: "bg-yellow-500", text: "text-yellow-700" };
+  return { bar: "bg-green-600", text: "text-green-700" };
+}
 
-const stockItems = [
-  {
-    name: "Rod 12mm",
-    stock: "3.5 Ton",
-    width: "35%",
-    color: "bg-orange-500",
-    text: "text-orange-600",
-  },
+// ─────────────────────────────────────────────
+// Helper: আজকের বিল filter করা
+// ─────────────────────────────────────────────
+function getTodayBillings(billings) {
+  const today = new Date().toDateString();
+  return billings.filter(
+    (bill) => new Date(bill.createdAt).toDateString() === today
+  );
+}
 
-  {
-    name: "Sand",
-    stock: "0 Cubic",
-    width: "10%",
-    color: "bg-red-500",
-    text: "text-red-600",
-  },
+// ─────────────────────────────────────────────
+// Helper: বিলের সব পণ্যের নাম একসাথে দেখানো
+// ─────────────────────────────────────────────
+function getProductSummary(items = []) {
+  if (items.length === 0) return "—";
+  return items
+    .slice(0, 2)
+    .map((i) => `${i.productName} ${i.quantity} ${i.unit}`)
+    .join(", ");
+}
 
-  {
-    name: "Cement 52",
-    stock: "185 Bag",
-    width: "85%",
-    color: "bg-green-600",
-    text: "text-green-700",
-  },
-
-  {
-    name: "Brick",
-    stock: "200 Pieces",
-    width: "40%",
-    color: "bg-yellow-500",
-    text: "text-yellow-700",
-  },
-];
-
+// ─────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────
 const DashboardTables = () => {
+  const [todayBillings, setTodayBillings] = useState([]);
+  const [inventory, setInventory] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data: tokenData } = await authClient.token();
+
+        const baseUrl =
+          !process.env.NEXT_PUBLIC_SERVER_URL ||
+          process.env.NEXT_PUBLIC_SERVER_URL.includes("localhost:8000")
+            ? "/api"
+            : process.env.NEXT_PUBLIC_SERVER_URL;
+
+        const headers = {
+          Authorization: `Bearer ${tokenData?.token}`,
+        };
+
+        // দুইটা API একসাথে call করা
+        const [billingRes, inventoryRes] = await Promise.all([
+          fetch(`${baseUrl}/billing`, { headers }),
+          fetch(`${baseUrl}/inventory`, { headers }),
+        ]);
+
+        const billingData = await billingRes.json();
+        const inventoryData = await inventoryRes.json();
+
+        if (Array.isArray(billingData)) {
+          setTodayBillings(getTodayBillings(billingData));
+        }
+        if (Array.isArray(inventoryData)) {
+          setInventory(inventoryData);
+        }
+      } catch (error) {
+        console.error("DashboardTables fetch error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // ─── Stock এর সর্বোচ্চ মান বের করা (progress bar scale এর জন্য)
+  const maxStock = Math.max(...inventory.map((i) => Number(i.stock) || 0), 1);
+
+  // ─── কতটা কম stock পণ্য আছে (15% এর নিচে)
+  const lowStockCount = inventory.filter((item) => {
+    const percent = getStockPercent(Number(item.stock) || 0, maxStock);
+    return percent <= 15;
+  }).length;
+
+  // ─── Loading skeleton ───
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 p-4 max-w-7xl mx-auto">
+        {[1, 2].map((i) => (
+          <div
+            key={i}
+            className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm animate-pulse"
+          >
+            <div className="h-1 bg-gray-200" />
+            <div className="px-6 py-5 border-b">
+              <div className="h-6 w-40 rounded bg-gray-200" />
+              <div className="mt-2 h-4 w-24 rounded bg-gray-100" />
+            </div>
+            <div className="divide-y">
+              {[1, 2, 3, 4].map((j) => (
+                <div key={j} className="flex items-center justify-between px-6 py-5">
+                  <div className="space-y-2">
+                    <div className="h-4 w-28 rounded bg-gray-200" />
+                    <div className="h-3 w-20 rounded bg-gray-100" />
+                  </div>
+                  <div className="h-6 w-20 rounded-full bg-gray-200" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // ─── Main Render ───
   return (
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 p-4 max-w-7xl mx-auto">
-      {/* RECENT SALES */}
+
+      {/* ── RECENT SALES ── */}
       <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
         <div className="h-1 bg-gradient-to-r from-violet-500 via-sky-500 to-amber-500 bg-[length:200%_200%] animate-gradient" />
 
         <div className="flex items-center justify-between border-b px-6 py-5">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">
-              Recent Sales/ আজকের বিক্রি
+              আজকের বিক্রি
             </h2>
-
-            <p className="mt-1 text-sm text-gray-500">
-              Today’s invoices
-            </p>
+            <p className="mt-1 text-sm text-gray-500">Today's invoices</p>
           </div>
 
           <div className="rounded-full bg-violet-100 px-4 py-1 text-sm font-semibold text-violet-700">
-            4 Items
+            {todayBillings.length} Items
           </div>
         </div>
 
-        <div className="divide-y">
-          {recentSales.map((sale, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between px-6 py-5 transition-all duration-300 hover:bg-gray-50"
-            >
-              <div className="flex items-center gap-4">
+        {todayBillings.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+            <p className="text-lg font-medium">আজ কোনো বিল নেই</p>
+            <p className="mt-1 text-sm">নতুন বিল তৈরি করুন</p>
+          </div>
+        ) : (
+          <div className="divide-y">
+            {todayBillings.map((bill, index) => {
+              const isPaid = bill.status === "Paid";
+              return (
                 <div
-                  className={`h-3 w-3 rounded-full ${sale.dot}`}
-                />
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {sale.name}
-                  </h3>
-
-                  <p className="text-sm text-gray-500">
-                    {sale.product}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <h2 className="text-xl font-bold text-gray-900">
-                  {sale.amount}
-                </h2>
-
-                <span
-                  className={`rounded-full px-4 py-1 text-sm font-semibold ${sale.color}`}
+                  key={bill._id || index}
+                  className="flex items-center justify-between px-6 py-5 transition-all duration-300 hover:bg-gray-50"
                 >
-                  {sale.status}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`h-3 w-3 rounded-full ${
+                        isPaid ? "bg-green-600" : "bg-red-600"
+                      }`}
+                    />
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {bill.customerName}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {getProductSummary(bill.items)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <h2 className="text-xl font-bold text-gray-900">
+                      ৳ {Number(bill.total || 0).toLocaleString("en-BD")}
+                    </h2>
+                    <span
+                      className={`rounded-full px-4 py-1 text-sm font-semibold ${
+                        isPaid
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {isPaid ? "Paid" : "Due"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* STOCK STATUS */}
+      {/* ── STOCK STATUS ── */}
       <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
         <div className="h-1 bg-gradient-to-r from-pink-500 via-orange-500 to-yellow-500 bg-[length:200%_200%] animate-gradient" />
 
         <div className="flex items-center justify-between border-b px-6 py-5">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">
-              Stock Status
-            </h2>
-
-            <p className="mt-1 text-sm text-gray-500">
-              Low stock alert
-            </p>
+            <h2 className="text-2xl font-bold text-gray-900">Stock Status</h2>
+            <p className="mt-1 text-sm text-gray-500">Low stock alert</p>
           </div>
 
           <div className="rounded-full bg-orange-100 px-4 py-1 text-sm font-semibold text-orange-700">
-            2 Low
+            {lowStockCount} Low
           </div>
         </div>
 
-        <div className="space-y-6 px-6 py-6">
-          {stockItems.map((item, index) => (
-            <div key={index}>
-              <div className="mb-2 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {item.name}
-                </h3>
+        {inventory.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+            <p className="text-lg font-medium">কোনো পণ্য নেই</p>
+            <p className="mt-1 text-sm">ইনভেন্টরিতে পণ্য যোগ করুন</p>
+          </div>
+        ) : (
+          <div className="space-y-6 px-6 py-6">
+            {inventory.map((item, index) => {
+              const stock = Number(item.stock) || 0;
+              const percent = getStockPercent(stock, maxStock);
+              const { bar, text } = getStockColor(percent);
 
-                <span
-                  className={`font-bold ${item.text}`}
-                >
-                  {item.stock}
-                </span>
-              </div>
+              return (
+                <div key={item._id || index}>
+                  <div className="mb-2 flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {item.productName}
+                    </h3>
+                    <span className={`font-bold ${text}`}>
+                      {stock} {item.unit || ""}
+                    </span>
+                  </div>
 
-              <div className="h-3 overflow-hidden rounded-full bg-gray-200">
-                <div
-                  className={`h-full rounded-full ${item.color}`}
-                  style={{ width: item.width }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+                  <div className="h-3 overflow-hidden rounded-full bg-gray-200">
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ${bar}`}
+                      style={{ width: `${percent}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
