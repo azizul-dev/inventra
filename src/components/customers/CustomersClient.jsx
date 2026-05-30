@@ -163,6 +163,7 @@ export default function CustomersClient({
         onDownloadPDF={handleDownloadPDF}
         onDeleteBill={deleteBill}
         onEditBill={handleEditBill}
+        isAdmin={isAdmin}
       />
     </div>
   );

@@ -15,6 +15,19 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { getDb } from "@/lib/db";
 
+// Helper to normalize Bangla and English digits to standard English float
+function parseNum(val) {
+  if (val === null || val === undefined) return 0;
+  const s = String(val).trim();
+  if (s === "") return 0;
+  const banglaDigits = {
+    "০": "0", "১": "1", "২": "2", "৩": "3", "৪": "4",
+    "৫": "5", "৬": "6", "৭": "7", "৮": "8", "৯": "9"
+  };
+  const normalized = s.replace(/[০-৯]/g, (match) => banglaDigits[match]);
+  return parseFloat(normalized) || 0;
+}
+
 const InventoryPage = async () => {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -40,6 +53,8 @@ const InventoryPage = async () => {
     console.error("Failed to query inventory directly:", error);
     errorMsg = "সার্ভার থেকে স্টক লোড করা যায়নি।";
   }
+
+  const maxStock = Math.max(...inventory.map((i) => parseNum(i.stock)), 1);
 
   return (
     <div className="p-4 md:p-6">
@@ -94,11 +109,10 @@ const InventoryPage = async () => {
       ) : (
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {inventory.map((item) => {
-            const stock = Number(item.stock);
-
-          const minimumStock = Number(item.minimumStock);
-
-          const lowStock = stock <= minimumStock;
+            const stock = parseNum(item.stock);
+            const minimumStock = parseNum(item.minimumStock);
+            const lowStock = stock <= minimumStock;
+            const percent = maxStock > 0 ? Math.min(Math.max((stock / maxStock) * 100, 0), 100) : 0;
 
           return (
             <div
@@ -174,15 +188,15 @@ const InventoryPage = async () => {
 
                   <div className="h-2 overflow-hidden rounded-full bg-gray-100">
                     <div
-                      className={`h-full rounded-full ${
+                      className={`h-full rounded-full transition-all duration-500 ${
                         stock === 0
                           ? "bg-red-600"
                           : lowStock
                             ? "bg-amber-500"
-                            : "bg-green-700"
+                            : "bg-gradient-to-r from-blue-500 to-indigo-600"
                       }`}
                       style={{
-                        width: stock === 0 ? "5%" : lowStock ? "35%" : "80%",
+                        width: `${stock === 0 ? 5 : percent}%`,
                       }}
                     />
                   </div>

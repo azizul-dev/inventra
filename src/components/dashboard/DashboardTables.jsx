@@ -3,6 +3,18 @@
 import { useState, useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
 
+function parseNum(val) {
+  if (val === null || val === undefined) return 0;
+  const s = String(val).trim();
+  if (s === "") return 0;
+  const banglaDigits = {
+    "০": "0", "১": "1", "২": "2", "৩": "3", "৪": "4",
+    "৫": "5", "৬": "6", "৭": "7", "৮": "8", "৯": "9"
+  };
+  const normalized = s.replace(/[০-৯]/g, (match) => banglaDigits[match]);
+  return parseFloat(normalized) || 0;
+}
+
 // ─────────────────────────────────────────────
 // Helper: সর্বোচ্চ stock value বের করা (progress bar এর জন্য)
 // ─────────────────────────────────────────────
@@ -92,11 +104,11 @@ const DashboardTables = () => {
   }, []);
 
   // ─── Stock এর সর্বোচ্চ মান বের করা (progress bar scale এর জন্য)
-  const maxStock = Math.max(...inventory.map((i) => Number(i.stock) || 0), 1);
+  const maxStock = Math.max(...inventory.map((i) => parseNum(i.stock)), 1);
 
   // ─── কতটা কম stock পণ্য আছে (15% এর নিচে)
   const lowStockCount = inventory.filter((item) => {
-    const percent = getStockPercent(Number(item.stock) || 0, maxStock);
+    const percent = getStockPercent(parseNum(item.stock), maxStock);
     return percent <= 15;
   }).length;
 
@@ -226,7 +238,7 @@ const DashboardTables = () => {
         ) : (
           <div className="space-y-6 px-6 py-6">
             {inventory.map((item, index) => {
-              const stock = Number(item.stock) || 0;
+              const stock = parseNum(item.stock);
               const percent = getStockPercent(stock, maxStock);
               const { bar, text } = getStockColor(percent);
 
