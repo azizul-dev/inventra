@@ -93,7 +93,7 @@ export function useCustomersData(initialBillingList = [], token) {
   };
 
   /**
-   * Deletes a single bill/invoice, restoring associated inventory stock.
+   * Deletes a single bill/invoice.
    */
   const deleteBill = async (billId) => {
     if (!billId) return false;

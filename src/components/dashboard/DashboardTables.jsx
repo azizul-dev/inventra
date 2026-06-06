@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
+import { TriangleAlert } from "lucide-react";
 
 function parseNum(val) {
   if (val === null || val === undefined) return 0;
@@ -106,10 +107,11 @@ const DashboardTables = () => {
   // ─── Stock এর সর্বোচ্চ মান বের করা (progress bar scale এর জন্য)
   const maxStock = Math.max(...inventory.map((i) => parseNum(i.stock)), 1);
 
-  // ─── কতটা কম stock পণ্য আছে (15% এর নিচে)
+  // ─── কতটা কম stock পণ্য আছে (stock <= minimumStock)
   const lowStockCount = inventory.filter((item) => {
-    const percent = getStockPercent(parseNum(item.stock), maxStock);
-    return percent <= 15;
+    const stock = parseNum(item.stock);
+    const minStock = parseNum(item.minimumStock);
+    return stock <= minStock;
   }).length;
 
   // ─── Loading skeleton ───
@@ -239,23 +241,52 @@ const DashboardTables = () => {
           <div className="space-y-6 px-6 py-6">
             {inventory.map((item, index) => {
               const stock = parseNum(item.stock);
+              const minStock = parseNum(item.minimumStock);
               const percent = getStockPercent(stock, maxStock);
-              const { bar, text } = getStockColor(percent);
+              
+              // Determine stock status and style
+              const isOutOfStock = stock === 0;
+              const isLowStock = stock <= minStock;
+              
+              let barColor = "bg-gradient-to-r from-blue-500 to-indigo-600";
+              let textColor = "text-green-700";
+              let statusText = "স্টক আছে";
+              let badgeBg = "bg-green-100 text-green-700";
+              
+              if (isOutOfStock) {
+                barColor = "bg-red-600";
+                textColor = "text-red-600";
+                statusText = "স্টক শেষ";
+                badgeBg = "bg-red-100 text-red-700";
+              } else if (isLowStock) {
+                barColor = "bg-amber-500";
+                textColor = "text-amber-600";
+                statusText = "কম স্টক";
+                badgeBg = "bg-amber-100 text-amber-700";
+              }
 
               return (
-                <div key={item._id || index}>
-                  <div className="mb-2 flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {item.productName}
-                    </h3>
-                    <span className={`font-bold ${text}`}>
+                <div key={item._id || index} className="space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {item.productName}
+                      </h3>
+                      {isLowStock && (
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold mt-1 ${badgeBg}`}>
+                          <TriangleAlert className="h-3 w-3" />
+                          {statusText}
+                        </span>
+                      )}
+                    </div>
+                    <span className={`font-bold text-lg ${textColor}`}>
                       {stock} {item.unit || ""}
                     </span>
                   </div>
 
                   <div className="h-3 overflow-hidden rounded-full bg-gray-200">
                     <div
-                      className={`h-full rounded-full transition-all duration-700 ${bar}`}
+                      className={`h-full rounded-full transition-all duration-700 ${barColor}`}
                       style={{ width: `${percent}%` }}
                     />
                   </div>

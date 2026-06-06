@@ -17,18 +17,6 @@ function parseNum(val) {
   return parseFloat(normalized) || 0;
 }
 
-// Helper to query product names robustly ignoring leading/trailing spaces and case
-function getProductQuery(productName) {
-  const trimmed = String(productName).trim();
-  const escaped = trimmed.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-  return {
-    $or: [
-      { productName: productName },
-      { productName: trimmed },
-      { productName: new RegExp("^\\s*" + escaped + "\\s*$", "i") }
-    ]
-  };
-}
 
 // GET single billing
 export async function GET(req, { params }) {
@@ -83,37 +71,11 @@ export async function DELETE(req, { params }) {
 
     const db = await getDb();
     const billingCollection = db.collection("billing");
-    const inventoryCollection = db.collection("inventor");
 
     // Find the bill first to get the items
     const billing = await billingCollection.findOne({ _id: new ObjectId(id) });
     if (!billing) {
       return NextResponse.json({ error: "Billing not found" }, { status: 404 });
-    }
-
-    // Restore inventory stock safely for each item in the bill
-    if (billing.items && Array.isArray(billing.items)) {
-      for (const item of billing.items) {
-        if (item.productName) {
-          const qty = parseNum(item.quantity);
-          if (qty !== 0) {
-            const product = await inventoryCollection.findOne(getProductQuery(item.productName));
-            if (product) {
-              const currentStock = parseNum(product.stock);
-              const newStock = currentStock + qty;
-              await inventoryCollection.updateOne(
-                { _id: product._id },
-                {
-                  $set: {
-                    stock: newStock,
-                    updatedAt: new Date(),
-                  },
-                }
-              );
-            }
-          }
-        }
-      }
     }
 
     const result = await billingCollection.deleteOne({
@@ -150,7 +112,6 @@ export async function PATCH(req, { params }) {
     const body = await req.json();
     const db = await getDb();
     const billingCollection = db.collection("billing");
-    const inventoryCollection = db.collection("inventor");
 
     // Find the old bill to compare items
     const oldBilling = await billingCollection.findOne({ _id: new ObjectId(id) });
@@ -178,58 +139,6 @@ export async function PATCH(req, { params }) {
         unit: item.unit ? item.unit.trim() : "pcs",
         sellPrice: parseNum(item.sellPrice),
       }));
-    }
-
-    // If items are being updated, adjust the inventory stock accordingly
-    if (normalizedData.items && Array.isArray(normalizedData.items)) {
-      const oldItems = oldBilling.items || [];
-      const newItems = normalizedData.items;
-
-      // Map of old item quantities
-      const oldItemsMap = {};
-      for (const item of oldItems) {
-        if (item.productName) {
-          oldItemsMap[item.productName] = (oldItemsMap[item.productName] || 0) + parseNum(item.quantity);
-        }
-      }
-
-      // Map of new item quantities
-      const newItemsMap = {};
-      for (const item of newItems) {
-        if (item.productName) {
-          newItemsMap[item.productName] = (newItemsMap[item.productName] || 0) + parseNum(item.quantity);
-        }
-      }
-
-      // Get all unique product names
-      const allProductNames = new Set([
-        ...Object.keys(oldItemsMap),
-        ...Object.keys(newItemsMap),
-      ]);
-
-      // Adjust inventory stock safely for each product
-      for (const productName of allProductNames) {
-        const qtyOld = oldItemsMap[productName] || 0;
-        const qtyNew = newItemsMap[productName] || 0;
-        const diff = qtyOld - qtyNew; // If old > new, stock increases. If old < new, stock decreases.
-
-        if (diff !== 0) {
-          const product = await inventoryCollection.findOne(getProductQuery(productName));
-          if (product) {
-            const currentStock = parseNum(product.stock);
-            const newStock = currentStock + diff;
-            await inventoryCollection.updateOne(
-              { _id: product._id },
-              {
-                $set: {
-                  stock: newStock,
-                  updatedAt: new Date(),
-                },
-              }
-            );
-          }
-        }
-      }
     }
 
     const result = await billingCollection.updateOne(
